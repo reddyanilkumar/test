@@ -1,5 +1,10 @@
 
+
+
+
 In [1]:
+
+
 
 import pandas as pd
 import numpy as np
@@ -7,66 +12,42 @@ import matplotlib.pyplot as plt
 %matplotlib inline
 import seaborn as sns
 
-In [2]:
 
-user_df= pd.read_csv("train/users.csv")
-prob_df= pd.read_csv("train/problems.csv")
-sub_df= pd.read_csv("train/submissions.csv")
+
 
 In [4]:
 
-test_user_df= pd.read_csv("test/users.csv")
-test_prob_df= pd.read_csv("test/problems.csv")
-test_sub_df= pd.read_csv("test/test.csv")
 
-In [15]:
 
-test_prob_df.count()
+user_df= pd.read_csv("train/users.csv")
+sub_df= pd.read_csv("train/submissions.csv")
+prob_df= pd.read_csv("train/problems.csv")
 
-Out[15]:
 
-problem_id      956
-level           752
-accuracy        956
-solved_count    956
-error_count     956
-rating          956
-tag1            666
-tag2            422
-tag3            158
-tag4             41
-tag5              7
-dtype: int64
 
-In [16]:
-
-test_sub_df.count()
-
-Out[16]:
-
-Id            35618
-user_id       35618
-problem_id    35618
-dtype: int64
-
-In [17]:
-
-test_user_df.count()
-
-Out[17]:
-
-user_id         15279
-skills          15279
-solved_count    15279
-attempts        15279
-user_type        8459
-dtype: int64
 
 In [5]:
 
+
+
+test_user_df= pd.read_csv("test/users.csv") 
+test_prob_df= pd.read_csv("test/problems.csv") 
+test_sub_df= pd.read_csv("test/test.csv") 
+
+
+
+
+In [6]:
+
+
+
 user_df.count()
 
-Out[5]:
+
+
+
+
+Out[6]:
 
 user_id         62530
 skills          62271
@@ -75,11 +56,19 @@ attempts        62530
 user_type       34215
 dtype: int64
 
-In [6]:
+
+
+In [7]:
+
+
 
 prob_df.count()
 
-Out[6]:
+
+
+
+
+Out[7]:
 
 problem_id      1002
 level            768
@@ -94,11 +83,19 @@ tag4              46
 tag5               6
 dtype: int64
 
-In [7]:
+
+
+In [8]:
+
+
 
 sub_df.count()
 
-Out[7]:
+
+
+
+
+Out[8]:
 
 user_id           1198131
 problem_id        1198131
@@ -108,113 +105,217 @@ language_used     1198131
 execution_time    1198131
 dtype: int64
 
-In [12]:
 
-merged_inner = pd.merge(user_df,sub_df,on='user_id')
 
-In [18]:
+In [9]:
 
-test_merged_inner = pd.merge(test_user_df,test_sub_df,on='user_id')
 
-In [20]:
 
-test_merged_inner1 = pd.merge(left=test_merged_inner,right=test_prob_df,left_on='problem_id', right_on='problem_id')
+merged_inner = pd.merge(left=user_df,right=sub_df,left_on='user_id', right_on='user_id')
 
-In [21]:
 
-test_merged_inner1.count()
 
-Out[21]:
 
-user_id           35618
-skills            35618
-solved_count_x    35618
-attempts          35618
-user_type         20550
-Id                35618
-problem_id        35618
-level             32167
-accuracy          35618
-solved_count_y    35618
-error_count       35618
-rating            35618
-tag1              27502
-tag2              16562
-tag3               4042
-tag4                673
-tag5                280
-dtype: int64
+In [10]:
 
-In [22]:
 
-merged_inner.head()
 
-Out[22]:
-	user_id 	skills 	solved_count 	attempts 	user_type 	problem_id 	solved_status 	result 	language_used 	execution_time
-0 	1427919 	C++ 	0 	11 	W 	913736 	AT 	PAC 	C++ 	0.5874
-1 	1427919 	C++ 	0 	11 	W 	913736 	AT 	PAC 	C++ 	0.5603
-2 	1427919 	C++ 	0 	11 	W 	913736 	AT 	PAC 	C++ 	0.5696
-3 	1427919 	C++ 	0 	11 	W 	913736 	AT 	PAC 	C++ 	0.5666
-4 	1427919 	C++ 	0 	11 	W 	913736 	AT 	PAC 	C++ 	0.5656
-In [23]:
+test_merged_inner = pd.merge(test_user_df,test_sub_df,on='user_id') 
+test_merged_inner1 = pd.merge(left=test_merged_inner,right=test_prob_df,left_on='problem_id', right_on='problem_id') 
+
+
+
+
+In [11]:
+
+
 
 merged_inner.drop('language_used', axis=1, inplace=True)
 merged_inner.drop('result', axis=1, inplace=True)
 merged_inner.drop('execution_time', axis=1, inplace=True)
 
-In [24]:
+
+
+
+In [12]:
+
+
 
 merged_inner.drop_duplicates(inplace=True)
 
-In [25]:
+
+
+
+In [13]:
+
+
 
 merged_inner.drop('user_type', axis=1, inplace=True)
 
-In [27]:
+
+
+
+In [16]:
+
+
 
 test_merged_inner1.drop('user_type', axis=1, inplace=True)
 
-In [32]:
 
-merged_inner.head()
 
-Out[32]:
-	user_id 	skills 	solved_count 	attempts 	problem_id 	solved_status
-0 	1427919 	C++ 	0 	11 	913736 	AT
-11 	1034704 	C 	3 	11 	906741 	AT
-13 	1034704 	C 	3 	11 	906741 	SO
-15 	1034704 	C 	3 	11 	909152 	SO
-17 	1034704 	C 	3 	11 	909145 	SO
-In [33]:
 
-test_merged_inner1.head()
+In [14]:
 
-Out[33]:
-	user_id 	skills 	solved_count_x 	attempts 	Id 	problem_id 	level 	accuracy 	solved_count_y 	error_count 	rating 	tag1 	tag2 	tag3 	tag4 	tag5
-0 	1444303 	Python 	0 	5 	14425 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
-1 	1461057 	Python 	0 	2 	18638 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
-2 	1002312 	Python|PHP 	0 	5 	9929 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
-3 	1002353 	Python 	14 	6 	20229 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
-4 	1068032 	Python|C|Java|C++ 	84 	36 	25139 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
-In [34]:
+
+
+merged_inner.head(20)
+
+
+
+
+
+Out[14]:
+
+
+
+
+
+user_id
+
+skills
+
+solved_count
+
+attempts
+
+problem_id
+
+solved_status
+
+
+
+0
+1427919 C++ 0 11 913736 AT 
+
+11
+1034704 C 3 11 906741 AT 
+
+13
+1034704 C 3 11 906741 SO 
+
+15
+1034704 C 3 11 909152 SO 
+
+17
+1034704 C 3 11 909145 SO 
+
+18
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 907301 AT 
+
+21
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 920126 SO 
+
+23
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903666 SO 
+
+29
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 906315 AT 
+
+34
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903790 SO 
+
+36
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903790 AT 
+
+38
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903639 SO 
+
+40
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903639 AT 
+
+42
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 926728 AT 
+
+43
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903788 SO 
+
+46
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 907300 AT 
+
+47
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903786 AT 
+
+48
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903786 SO 
+
+64
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 905488 AT 
+
+69
+903633 C|PHP|Java|Python|Text|JavaScript|C++|Perl|C#|... 66 260 903905 SO 
+
+
+
+In [15]:
+
+
 
 merged_inner.corr()
 
-Out[34]:
-	user_id 	solved_count 	attempts 	problem_id
-user_id 	1.000000 	-0.120974 	-0.168427 	0.351435
-solved_count 	-0.120974 	1.000000 	0.737944 	0.039585
-attempts 	-0.168427 	0.737944 	1.000000 	-0.017755
-problem_id 	0.351435 	0.039585 	-0.017755 	1.000000
-In [35]:
+
+
+
+
+Out[15]:
+
+
+
+
+
+user_id
+
+solved_count
+
+attempts
+
+problem_id
+
+
+
+user_id
+1.000000 -0.120974 -0.168427 0.351435 
+
+solved_count
+-0.120974 1.000000 0.737944 0.039585 
+
+attempts
+-0.168427 0.737944 1.000000 -0.017755 
+
+problem_id
+0.351435 0.039585 -0.017755 1.000000 
+
+
+
+In [93]:
+
+
 
 merged_inner1 = pd.merge(left=merged_inner,right=prob_df,left_on='problem_id', right_on='problem_id')
 
-In [38]:
+
+
+
+In [94]:
+
+
 
 merged_inner1.count()
 
-Out[38]:
+
+
+
+
+Out[94]:
 
 user_id           516086
 skills            516086
@@ -234,75 +335,232 @@ tag4               20003
 tag5                4782
 dtype: int64
 
-In [39]:
+
+
+In [95]:
+
+
 
 merged_inner1.drop('tag5', axis=1, inplace=True)
 
+
+
+
+In [96]:
+
+
+
 merged_inner1.drop('tag4', axis=1, inplace=True)
+
+
+
+
+In [97]:
+
+
 
 merged_inner1.drop('tag3', axis=1, inplace=True)
 
+
+
+
+In [98]:
+
+
+
 merged_inner1.drop('tag2', axis=1, inplace=True)
+
+
+
+
+In [99]:
+
+
 
 merged_inner1.drop('tag1', axis=1, inplace=True)
 
-In [40]:
 
-test_merged_inner1.drop('tag5', axis=1, inplace=True)
 
-test_merged_inner1.drop('tag4', axis=1, inplace=True)
 
-test_merged_inner1.drop('tag3', axis=1, inplace=True)
+In [100]:
 
-test_merged_inner1.drop('tag2', axis=1, inplace=True)
 
-test_merged_inner1.drop('tag1', axis=1, inplace=True)
-
-In [41]:
 
 merged_inner1.drop('skills', axis=1, inplace=True)
+
+
+
+
+In [188]:
+
+
+
 merged_inner1.drop('level', axis=1, inplace=True)
 
-In [42]:
 
-test_merged_inner1.drop('skills', axis=1, inplace=True)
-test_merged_inner1.drop('level', axis=1, inplace=True)
 
-In [43]:
+
+In [101]:
+
+
+
+test_merged_inner1.drop('tag5', axis=1, inplace=True) 
+test_merged_inner1.drop('tag4', axis=1, inplace=True) 
+test_merged_inner1.drop('tag3', axis=1, inplace=True) 
+test_merged_inner1.drop('tag2', axis=1, inplace=True) 
+test_merged_inner1.drop('tag1', axis=1, inplace=True) 
+
+
+
+
+
+
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+<ipython-input-101-92613e0d6ea3> in <module>()
+----> 1 test_merged_inner1.drop('tag5', axis=1, inplace=True)
+      2 test_merged_inner1.drop('tag4', axis=1, inplace=True)
+      3 test_merged_inner1.drop('tag3', axis=1, inplace=True)
+      4 test_merged_inner1.drop('tag2', axis=1, inplace=True)
+      5 test_merged_inner1.drop('tag1', axis=1, inplace=True)
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in drop(self, labels, axis, level, inplace, errors)
+   1595                 new_axis = axis.drop(labels, level=level, errors=errors)
+   1596             else:
+-> 1597                 new_axis = axis.drop(labels, errors=errors)
+   1598             dropped = self.reindex(**{axis_name: new_axis})
+   1599             try:
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\index.pyc in drop(self, labels, errors)
+   2568         if mask.any():
+   2569             if errors != 'ignore':
+-> 2570                 raise ValueError('labels %s not contained in axis' % labels[mask])
+   2571             indexer = indexer[~mask]
+   2572         return self.delete(indexer)
+
+ValueError: labels ['tag5'] not contained in axis
+
+
+
+In [102]:
+
+
+
+test_merged_inner1.drop('skills', axis=1, inplace=True) 
+#test_merged_inner1.drop('level', axis=1, inplace=True) 
+
+
+
+
+
+
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+<ipython-input-102-7b6905224528> in <module>()
+----> 1 test_merged_inner1.drop('skills', axis=1, inplace=True)
+      2 #test_merged_inner1.drop('level', axis=1, inplace=True)
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in drop(self, labels, axis, level, inplace, errors)
+   1595                 new_axis = axis.drop(labels, level=level, errors=errors)
+   1596             else:
+-> 1597                 new_axis = axis.drop(labels, errors=errors)
+   1598             dropped = self.reindex(**{axis_name: new_axis})
+   1599             try:
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\index.pyc in drop(self, labels, errors)
+   2568         if mask.any():
+   2569             if errors != 'ignore':
+-> 2570                 raise ValueError('labels %s not contained in axis' % labels[mask])
+   2571             indexer = indexer[~mask]
+   2572         return self.delete(indexer)
+
+ValueError: labels ['skills'] not contained in axis
+
+
+
+In [103]:
+
+
 
 merged_inner1.head()
 
-Out[43]:
-	user_id 	solved_count_x 	attempts 	problem_id 	solved_status 	accuracy 	solved_count_y 	error_count 	rating
-0 	1427919 	0 	11 	913736 	AT 	0.21 	524 	7868 	4
-1 	1187633 	14 	20 	913736 	AT 	0.21 	524 	7868 	4
-2 	1187633 	14 	20 	913736 	SO 	0.21 	524 	7868 	4
-3 	1165859 	2 	14 	913736 	AT 	0.21 	524 	7868 	4
-4 	1034822 	6 	11 	913736 	AT 	0.21 	524 	7868 	4
-In [44]:
 
-test_merged_inner1.head()
 
-Out[44]:
-	user_id 	solved_count_x 	attempts 	Id 	problem_id 	accuracy 	solved_count_y 	error_count 	rating
-0 	1444303 	0 	5 	14425 	940002 	0.42 	63 	371 	3.7
-1 	1461057 	0 	2 	18638 	940002 	0.42 	63 	371 	3.7
-2 	1002312 	0 	5 	9929 	940002 	0.42 	63 	371 	3.7
-3 	1002353 	14 	6 	20229 	940002 	0.42 	63 	371 	3.7
-4 	1068032 	84 	36 	25139 	940002 	0.42 	63 	371 	3.7
-In [45]:
+
+
+Out[103]:
+
+
+
+
+
+user_id
+
+solved_count_x
+
+attempts
+
+problem_id
+
+solved_status
+
+level
+
+accuracy
+
+solved_count_y
+
+error_count
+
+rating
+
+
+
+0
+1427919 0 11 913736 AT M 0.21 524 7868 4 
+
+1
+1187633 14 20 913736 AT M 0.21 524 7868 4 
+
+2
+1187633 14 20 913736 SO M 0.21 524 7868 4 
+
+3
+1165859 2 14 913736 AT M 0.21 524 7868 4 
+
+4
+1034822 6 11 913736 AT M 0.21 524 7868 4 
+
+
+
+In [104]:
+
+
 
 merged_inner1.solved_status.unique()
 
-Out[45]:
+
+
+
+
+Out[104]:
 
 array(['AT', 'SO', 'UK'], dtype=object)
 
-In [46]:
+
+
+In [105]:
+
+
 
 merged_inner1 = merged_inner1[merged_inner1.solved_status != 'UK']
 
-In [48]:
+
+
+
+In [106]:
+
+
 
 def transform_solved_status(ss):
     if (ss == 'SO'):
@@ -310,313 +568,643 @@ def transform_solved_status(ss):
     if (ss == 'AT'):
         return 0
 
-In [49]:
+
+
+
+In [107]:
+
+
 
 merged_inner1['solved_status'] = merged_inner1['solved_status'].map(transform_solved_status)
 
-/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:2: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
 
-See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
-  from IPython.kernel.zmq import kernelapp as app
 
-In [50]:
+
+In [108]:
+
+
 
 merged_inner1.head()
 
-Out[50]:
-	user_id 	solved_count_x 	attempts 	problem_id 	solved_status 	accuracy 	solved_count_y 	error_count 	rating
-0 	1427919 	0 	11 	913736 	0 	0.21 	524 	7868 	4
-1 	1187633 	14 	20 	913736 	0 	0.21 	524 	7868 	4
-2 	1187633 	14 	20 	913736 	1 	0.21 	524 	7868 	4
-3 	1165859 	2 	14 	913736 	0 	0.21 	524 	7868 	4
-4 	1034822 	6 	11 	913736 	0 	0.21 	524 	7868 	4
-In [72]:
+
+
+
+
+Out[108]:
+
+
+
+
+
+user_id
+
+solved_count_x
+
+attempts
+
+problem_id
+
+solved_status
+
+level
+
+accuracy
+
+solved_count_y
+
+error_count
+
+rating
+
+
+
+0
+1427919 0 11 913736 0 M 0.21 524 7868 4 
+
+1
+1187633 14 20 913736 0 M 0.21 524 7868 4 
+
+2
+1187633 14 20 913736 1 M 0.21 524 7868 4 
+
+3
+1165859 2 14 913736 0 M 0.21 524 7868 4 
+
+4
+1034822 6 11 913736 0 M 0.21 524 7868 4 
+
+
+
+In [50]:
+
+
+
+x = pd.get_dummies(merged_inner1[['level','accuracy','solved_count_x']])
+
+
+
+
+In [62]:
+
+
+
+x.count()
+
+
+
+
+
+Out[62]:
+
+accuracy          516073
+solved_count_x    516073
+level_E           516073
+level_E-M         516073
+level_H           516073
+level_M           516073
+level_M-H         516073
+dtype: int64
+
+
+
+In [109]:
+
+
 
 merged_inner1['accuracy'] = (merged_inner1.accuracy*10).apply(np.round)
 
-/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:1: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
 
-See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
-  if __name__ == '__main__':
 
-In [214]:
+
+In [110]:
+
+
 
 test_merged_inner1['accuracy'] = (test_merged_inner1.accuracy*10).apply(np.round)
 
-In [215]:
 
-test_merged_inner1.accuracy.unique()
 
-Out[215]:
 
-array([  4.,   3.,   9.,   7.,   2.,   6.,   5.,   8.,  10.,   1.,   0.])
+In [111]:
 
-In [83]:
+
 
 sns.factorplot('accuracy',data=merged_inner1,kind="count",hue='solved_status',order=[1,2,3,4,5,6,7,8,9,10])
 
-Out[83]:
 
-<seaborn.axisgrid.FacetGrid at 0x7f10cbe539d0>
 
-In [56]:
 
-merged_inner1.rating.unique()
 
-Out[56]:
+Out[111]:
 
-array([ 4.,  0.,  5.,  3.,  2.,  1.])
+<seaborn.axisgrid.FacetGrid at 0x26e65f90>
 
-In [55]:
 
-merged_inner1['rating'] = merged_inner1['rating'].apply(np.round)
-
-/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:1: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
-  if __name__ == '__main__':
-
-In [84]:
-
-sns.factorplot('rating',data=merged_inner1,kind="count",size=5)
-
-Out[84]:
-
-<seaborn.axisgrid.FacetGrid at 0x7f10c92d5c90>
-
-In [85]:
-
-sns.factorplot('rating',data=merged_inner1,kind="count",hue="solved_status",size=5)
-
-Out[85]:
-
-<seaborn.axisgrid.FacetGrid at 0x7f10c8ed6ed0>
-
-In [216]:
-
-from sklearn.cross_validation import train_test_split
-X_train,X_test,Y_train,y_test = train_test_split(merged_inner1[['solved_count_x','accuracy']],merged_inner1.solved_status)
-
-In [189]:
-
-y_test.unique()
-
-Out[189]:
-
-array([1, 0])
-
-In [130]:
-
-from sklearn.svm import LinearSVC
-svm = LinearSVC(C=0.1)
-svm.fit(X_train,Y_train)
-
-svm.score(X_train,Y_train)
-
-Out[130]:
-
-0.6998610013073111
-
-In [131]:
-
-svm.score(X_test,y_test)
-
-Out[131]:
-
-0.70168734837504554
-
-In [217]:
-
-from sklearn.ensemble import RandomForestClassifier
-
-rf = RandomForestClassifier(n_estimators=15,random_state=33,max_depth=20)
-
-rf.fit(X_train,Y_train)
-
-rf.score(X_train,Y_train)
-
-Out[217]:
-
-0.71956884569078217
-
-In [218]:
-
-rf.score(X_test,y_test)
-
-Out[218]:
-
-0.71524349126872788
-
-In [219]:
-
-class_predict = rf.predict(X_test)
-print metrics.accuracy_score(y_test,class_predict)
-
-0.715243491269
-
-In [194]:
-
-X_test.head()
-
-Out[194]:
-	solved_count_x 	accuracy 	rating
-486197 	86 	9 	4
-19776 	15 	6 	4
-379120 	8 	6 	0
-143997 	10 	5 	2
-290205 	3 	3 	3
-In [195]:
-
-test_merged_inner1.head()
-
-Out[195]:
-	user_id 	solved_count_x 	attempts 	Id 	problem_id 	accuracy 	solved_count_y 	error_count 	rating
-0 	1444303 	0 	5 	14425 	940002 	0.42 	63 	371 	3.7
-1 	1461057 	0 	2 	18638 	940002 	0.42 	63 	371 	3.7
-2 	1002312 	0 	5 	9929 	940002 	0.42 	63 	371 	3.7
-3 	1002353 	14 	6 	20229 	940002 	0.42 	63 	371 	3.7
-4 	1068032 	84 	36 	25139 	940002 	0.42 	63 	371 	3.7
-In [220]:
-
-test_predict = rf.predict(test_merged_inner1[['solved_count_x','accuracy']])
-
-In [221]:
-
-test_predict_df = pd.DataFrame(test_predict)
-test_predict_df.count()
-
-Out[221]:
-
-0    35618
-dtype: int64
-
-In [222]:
-
-test_predict_df.to_csv('submission-1.csv')
-
-In [196]:
 
  
 
-0.70969392105
 
-In [134]:
+
+In [112]:
+
+
+
+def transform_level(l):
+    if(l == 'E'):
+        return 0
+    if(l == 'M'):
+        return 1
+    if(l == 'H'):
+        return 2
+    if(l == 'E-M'):
+        return 3
+    if(l == 'M-H'):
+        return 4
+    
+
+
+
+
+In [113]:
+
+
+
+merged_inner1['level'] = merged_inner1['level'].map(transform_level)
+
+
+
+
+In [241]:
+
+
+
+sns.factorplot('level',data=merged_inner1,kind="count",hue='solved_status')
+
+
+
+
+
+Out[241]:
+
+<seaborn.axisgrid.FacetGrid at 0x43e31c10>
+
+
+
+ 
+
+
+
+In [122]:
+
+
+
+merged_inner1.head()
+
+
+
+
+
+Out[122]:
+
+
+
+
+
+user_id
+
+solved_count_x
+
+attempts
+
+problem_id
+
+solved_status
+
+level
+
+accuracy
+
+solved_count_y
+
+error_count
+
+rating
+
+
+
+0
+1427919 0 11 913736 0 1 2 524 7868 4 
+
+1
+1187633 14 20 913736 0 1 2 524 7868 4 
+
+2
+1187633 14 20 913736 1 1 2 524 7868 4 
+
+3
+1165859 2 14 913736 0 1 2 524 7868 4 
+
+4
+1034822 6 11 913736 0 1 2 524 7868 4 
+
+
+
+In [120]:
+
+
+
+merged_inner1 = merged_inner1.dropna()
+
+
+
+
+In [149]:
+
+
+
+from sklearn.cross_validation import train_test_split
+X_train,X_test,Y_train,y_test = train_test_split(merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
+
+
+
+
+In [227]:
+
+
+
+from sklearn.cross_validation import train_test_split
+X_train,X_test,Y_train,y_test = train_test_split(merged_inner1[['solved_count_x','accuracy','level']],merged_inner1.solved_status)
+
+
+
+
+In [228]:
+
+
+
+print X_train.mean(axis=0)
+print X_train.std(axis=0)
+
+
+
+
+
+
+solved_count_x    53.261748
+accuracy           6.045107
+level              0.483308
+dtype: float64
+solved_count_x    79.360017
+accuracy           2.270218
+level              0.868135
+dtype: float64
+
+
+
+
+In [229]:
+
+
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+
+
+
+
+In [230]:
+
+
+
+scaler.fit(X_train)
+
+
+
+
+
+Out[230]:
+
+StandardScaler(copy=True, with_mean=True, with_std=True)
+
+
+
+In [231]:
+
+
+
+X_scaled = scaler.transform(X_train)
+
+
+
+
+In [245]:
+
+
+
+X_train.solved_count_x.max()
+
+
+
+
+
+Out[245]:
+
+789L
+
+
+
+In [126]:
+
+
+
+from sklearn.svm import LinearSVC
+
+
+
+
+In [127]:
+
+
+
+svm = LinearSVC(C=0.1)
+
+
+
+
+In [128]:
+
+
+
+svm.fit(X_train,Y_train)
+
+
+
+
+
+Out[128]:
+
+LinearSVC(C=0.1, class_weight=None, dual=True, fit_intercept=True,
+     intercept_scaling=1, loss='squared_hinge', max_iter=1000,
+     multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
+     verbose=0)
+
+
+
+In [129]:
+
+
+
+svm.score(X_train,Y_train)
+
+
+
+
+
+Out[129]:
+
+0.58081254047144504
+
+
+
+In [130]:
+
+
+
+svm.score(X_test,y_test)
+
+
+
+
+
+Out[130]:
+
+0.58195135898815931
+
+
+
+In [233]:
+
+
+
+from sklearn.ensemble import RandomForestClassifier
+
+
+
+
+In [234]:
+
+
+
+rf = RandomForestClassifier(n_estimators=15,random_state=33,max_depth=20)
+
+
+
+
+In [235]:
+
+
+
+rf.fit(X_scaled,Y_train)
+
+
+
+
+
+Out[235]:
+
+RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=20, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=15, n_jobs=1,
+            oob_score=False, random_state=33, verbose=0, warm_start=False)
+
+
+
+In [236]:
+
+
+
+rf.score(X_train,Y_train)
+
+
+
+
+
+Out[236]:
+
+0.63158160304765754
+
+
+
+In [237]:
+
+
+
+rf.score(X_test,y_test)
+
+
+
+
+
+Out[237]:
+
+0.63044099838536061
+
+
+
+In [238]:
+
+
+
+from sklearn import metrics
+class_predict = rf.predict(X_test) 
+print metrics.accuracy_score(y_test,class_predict) 
+
+
+
+
+
+
+0.630440998385
+
+
+
+
+In [239]:
+
+
 
 def importances(estimator, col_array, title): 
     # Calculate the feature ranking - Top 10
     importances = estimator.feature_importances_
     indices = np.argsort(importances)[::-1]
     print "%s Top 20 Important Features\n" %title
-    for f in range(4):
+    for f in range(3):
         print("%d. %s (%f)" % (f + 1, col_array.columns[indices[f]], importances[indices[f]]))
 #Mean Feature Importance
     print "\nMean Feature Importance %.6f" %np.mean(importances)
 
-In [135]:
 
-importances(rf, merged_inner1[['solved_count_x','solved_count_y','accuracy','rating']], "Cover Type (Initial RF)")
+
+
+In [240]:
+
+
+
+importances(rf, x, "Cover Type (Initial RF)")
+
+
+
+
+
 
 Cover Type (Initial RF) Top 20 Important Features
 
-1. solved_count_x (0.489686)
-2. accuracy (0.265104)
-3. solved_count_y (0.245210)
+1. solved_count_x (0.470483)
+2. accuracy (0.462990)
+3. level_E (0.066527)
 
----------------------------------------------------------------------------
-IndexError                                Traceback (most recent call last)
-<ipython-input-135-af0cb62e51be> in <module>()
-----> 1 importances(rf, merged_inner1[['solved_count_x','solved_count_y','accuracy','rating']], "Cover Type (Initial RF)")
+Mean Feature Importance 0.333333
 
-<ipython-input-134-6ac5ae1318a9> in importances(estimator, col_array, title)
-      7     print "%s Top 20 Important Features\n" %title
-      8     for f in range(4):
-----> 9         print("%d. %s (%f)" % (f + 1, col_array.columns[indices[f]], importances[indices[f]]))
-     10 #Mean Feature Importance
-     11     print "\nMean Feature Importance %.6f" %np.mean(importances)
 
-IndexError: index 3 is out of bounds for axis 0 with size 3
 
-In [15]:
+
+In [215]:
+
+
 
 merged_inner1.drop('error_count', axis=1, inplace=True)
 
+
+
+
+In [143]:
+
+
+
 merged_inner1.drop('solved_count_x', axis=1, inplace=True)
+
+
+
+
+In [214]:
+
+
 
 merged_inner1.drop('solved_count_y', axis=1, inplace=True)
 
+
+
+
+In [145]:
+
+
+
 merged_inner1.drop('accuracy', axis=1, inplace=True)
+
+
+
+
+In [228]:
+
+
 
 merged_inner1.drop('attempts', axis=1, inplace=True)
 
----------------------------------------------------------------------------
-NameError                                 Traceback (most recent call last)
-<ipython-input-15-6d80535d7488> in <module>()
-----> 1 merged_inner1.drop('error_count', axis=1, inplace=True)
-      2 
-      3 merged_inner1.drop('solved_count_x', axis=1, inplace=True)
-      4 
-      5 merged_inner1.drop('solved_count_y', axis=1, inplace=True)
 
-NameError: name 'merged_inner1' is not defined
 
-In [101]:
+
+In [90]:
+
+
 
 from sklearn.neighbors import KNeighborsClassifier
+
+
+
+
+In [91]:
+
+
+
 cls = KNeighborsClassifier()
 cls.fit(X_train,Y_train)
-print cls.score(X_train,Y_train)
-print cls.score(X_test,y_test)
+cls.score(X_test,y_test)
 
-0.67098389372
 
----------------------------------------------------------------------------
-KeyboardInterrupt                         Traceback (most recent call last)
-<ipython-input-101-52b8ada7b6ed> in <module>()
-      3 cls.fit(X_train,Y_train)
-      4 print cls.score(X_train,Y_train)
-----> 5 print cls.score(X_test,y_test)
 
-/home/anil/anaconda/lib/python2.7/site-packages/sklearn/base.pyc in score(self, X, y, sample_weight)
-    293         """
-    294         from .metrics import accuracy_score
---> 295         return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-    296 
-    297 
 
-/home/anil/anaconda/lib/python2.7/site-packages/sklearn/neighbors/classification.pyc in predict(self, X)
-    136         X = check_array(X, accept_sparse='csr')
-    137 
---> 138         neigh_dist, neigh_ind = self.kneighbors(X)
-    139 
-    140         classes_ = self.classes_
 
-/home/anil/anaconda/lib/python2.7/site-packages/sklearn/neighbors/base.pyc in kneighbors(self, X, n_neighbors, return_distance)
-    372                     "or set algorithm='brute'" % self._fit_method)
-    373             result = self._tree.query(X, n_neighbors,
---> 374                                       return_distance=return_distance)
-    375         else:
-    376             raise ValueError("internal: _fit_method not recognized")
+Out[91]:
 
-KeyboardInterrupt: 
+0.6737224749843046
 
-In [147]:
+
+
+In [89]:
+
+
 
 from sklearn.cross_validation import cross_val_score
 import numpy as np
-scores = cross_val_score(rf,merged_inner1[['solved_count_x','accuracy']],merged_inner1.solved_status)
+scores = cross_val_score(rf,x,merged_inner1.solved_status)
 print (scores)
 print (np.mean(scores))
 
-[ 0.69775905  0.71869623  0.72940404]
-0.715286437243
 
-In [18]:
+
+
+
+
+[ 0.69811365  0.71431893  0.72176557]
+0.711399382037
+
+
+
+
+In [213]:
+
+
 
 from sklearn.cross_validation import cross_val_score
 import numpy as np
@@ -624,60 +1212,543 @@ scores = cross_val_score(cls,merged_inner1.ix[:, merged_inner1.columns != 'solve
 print (scores)
 print (np.mean(scores))
 
+
+
+
+
+
 ---------------------------------------------------------------------------
-NameError                                 Traceback (most recent call last)
-<ipython-input-18-bfeabb846b3c> in <module>()
+MemoryError                               Traceback (most recent call last)
+<ipython-input-213-bfeabb846b3c> in <module>()
       1 from sklearn.cross_validation import cross_val_score
       2 import numpy as np
 ----> 3 scores = cross_val_score(cls,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
       4 print (scores)
       5 print (np.mean(scores))
 
-NameError: name 'merged_inner1' is not defined
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\indexing.pyc in __getitem__(self, key)
+     66                 pass
+     67 
+---> 68             return self._getitem_tuple(key)
+     69         else:
+     70             return self._getitem_axis(key, axis=0)
 
-In [19]:
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\indexing.pyc in _getitem_tuple(self, tup)
+    718                 continue
+    719 
+--> 720             retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+    721 
+    722         return retval
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\indexing.pyc in _getitem_axis(self, key, axis)
+    913                 raise ValueError('Cannot index with multidimensional key')
+    914 
+--> 915             return self._getitem_iterable(key, axis=axis)
+    916         else:
+    917             if is_integer(key):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\indexing.pyc in _getitem_iterable(self, key, axis)
+    938             key = check_bool_indexer(labels, key)
+    939             inds, = key.nonzero()
+--> 940             return self.obj.take(inds, axis=axis, convert=False)
+    941         else:
+    942             if isinstance(key, Index):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in take(self, indices, axis, convert, is_copy)
+   1356         new_data = self._data.take(indices,
+   1357                                    axis=self._get_block_manager_axis(axis),
+-> 1358                                    convert=True, verify=True)
+   1359         result = self._constructor(new_data).__finalize__(self)
+   1360 
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in take(self, indexer, axis, verify, convert)
+   3273         new_labels = self.axes[axis].take(indexer)
+   3274         return self.reindex_indexer(new_axis=new_labels, indexer=indexer,
+-> 3275                                     axis=axis, allow_dups=True)
+   3276 
+   3277     def merge(self, other, lsuffix='', rsuffix=''):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in reindex_indexer(self, new_axis, indexer, axis, fill_value, allow_dups, copy)
+   3155         if axis == 0:
+   3156             new_blocks = self._slice_take_blocks_ax0(
+-> 3157                 indexer, fill_tuple=(fill_value,))
+   3158         else:
+   3159             new_blocks = [blk.take_nd(indexer, axis=axis,
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in _slice_take_blocks_ax0(self, slice_or_indexer, fill_tuple)
+   3236                     blocks.append(blk.take_nd(
+   3237                         blklocs[mgr_locs.indexer], axis=0,
+-> 3238                         new_mgr_locs=mgr_locs, fill_tuple=None))
+   3239 
+   3240         return blocks
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in take_nd(self, indexer, axis, new_mgr_locs, fill_tuple)
+    851             fill_value = self.fill_value
+    852             new_values = com.take_nd(self.get_values(), indexer, axis=axis,
+--> 853                                      allow_fill=False)
+    854         else:
+    855             fill_value = fill_tuple[0]
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\common.pyc in take_nd(arr, indexer, axis, out, fill_value, mask_info, allow_fill)
+    836             out = np.empty(out_shape, dtype=dtype, order='F')
+    837         else:
+--> 838             out = np.empty(out_shape, dtype=dtype)
+    839 
+    840     func = _get_take_nd_function(arr.ndim, arr.dtype, out.dtype,
+
+MemoryError: 
+
+
+
+In [231]:
+
+
 
 from sklearn.cross_validation import cross_val_score
 import numpy as np
-scores = cross_val_score(svm,merged_inner1[['solved_count_x','solved_count_y','accuracy','rating']],merged_inner1.solved_status)
+scores = cross_val_score(svm,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
 print (scores)
 print (np.mean(scores))
 
+
+
+
+
+
 ---------------------------------------------------------------------------
-NameError                                 Traceback (most recent call last)
-<ipython-input-19-f7e99e615668> in <module>()
+MemoryError                               Traceback (most recent call last)
+<ipython-input-231-f7e99e615668> in <module>()
       1 from sklearn.cross_validation import cross_val_score
       2 import numpy as np
 ----> 3 scores = cross_val_score(svm,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
       4 print (scores)
       5 print (np.mean(scores))
 
-NameError: name 'merged_inner1' is not defined
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\cross_validation.pyc in cross_val_score(estimator, X, y, scoring, cv, n_jobs, verbose, fit_params, pre_dispatch)
+   1359                                               train, test, verbose, None,
+   1360                                               fit_params)
+-> 1361                       for train, test in cv)
+   1362     return np.array(scores)[:, 0]
+   1363 
 
-In [167]:
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in __call__(self, iterable)
+    657             self._iterating = True
+    658             for function, args, kwargs in iterable:
+--> 659                 self.dispatch(function, args, kwargs)
+    660 
+    661             if pre_dispatch == "all" or n_jobs == 1:
 
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in dispatch(self, func, args, kwargs)
+    404         """
+    405         if self._pool is None:
+--> 406             job = ImmediateApply(func, args, kwargs)
+    407             index = len(self._jobs)
+    408             if not _verbosity_filter(index, self.verbose):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in __init__(self, func, args, kwargs)
+    138         # Don't delay the application, to avoid keeping the input
+    139         # arguments in memory
+--> 140         self.results = func(*args, **kwargs)
+    141 
+    142     def get(self):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\cross_validation.pyc in _fit_and_score(estimator, X, y, scorer, train, test, verbose, parameters, fit_params, return_train_score, return_parameters, error_score)
+   1457             estimator.fit(X_train, **fit_params)
+   1458         else:
+-> 1459             estimator.fit(X_train, y_train, **fit_params)
+   1460 
+   1461     except Exception as e:
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\svm\classes.pyc in fit(self, X, y)
+    198 
+    199         X, y = check_X_y(X, y, accept_sparse='csr',
+--> 200                          dtype=np.float64, order="C")
+    201         self.classes_ = np.unique(y)
+    202 
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\utils\validation.pyc in check_X_y(X, y, accept_sparse, dtype, order, copy, force_all_finite, ensure_2d, allow_nd, multi_output, ensure_min_samples, ensure_min_features, y_numeric)
+    442     X = check_array(X, accept_sparse, dtype, order, copy, force_all_finite,
+    443                     ensure_2d, allow_nd, ensure_min_samples,
+--> 444                     ensure_min_features)
+    445     if multi_output:
+    446         y = check_array(y, 'csr', force_all_finite=True, ensure_2d=False,
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\utils\validation.pyc in check_array(array, accept_sparse, dtype, order, copy, force_all_finite, ensure_2d, allow_nd, ensure_min_samples, ensure_min_features)
+    335     else:
+    336         if ensure_2d:
+--> 337             array = np.atleast_2d(array)
+    338         if dtype_numeric:
+    339             if hasattr(array, "dtype") and getattr(array.dtype, "kind", None) == "O":
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\numpy\core\shape_base.pyc in atleast_2d(*arys)
+     97     res = []
+     98     for ary in arys:
+---> 99         ary = asanyarray(ary)
+    100         if len(ary.shape) == 0 :
+    101             result = ary.reshape(1, 1)
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\numpy\core\numeric.pyc in asanyarray(a, dtype, order)
+    512 
+    513     """
+--> 514     return array(a, dtype, copy=False, order=order, subok=True)
+    515 
+    516 def ascontiguousarray(a, dtype=None):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in __array__(self, dtype)
+    738 
+    739     def __array__(self, dtype=None):
+--> 740         return _values_from_object(self)
+    741 
+    742     def __array_wrap__(self, result, context=None):
+
+pandas\lib.pyx in pandas.lib.values_from_object (pandas\lib.c:4148)()
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in get_values(self)
+   2331     def get_values(self):
+   2332         """ same as values (but handles sparseness conversions) """
+-> 2333         return self.as_matrix()
+   2334 
+   2335     def get_dtype_counts(self):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\generic.pyc in as_matrix(self, columns)
+   2304         self._consolidate_inplace()
+   2305         if self._AXIS_REVERSED:
+-> 2306             return self._data.as_matrix(columns).T
+   2307         return self._data.as_matrix(columns)
+   2308 
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in as_matrix(self, items)
+   2711             return mgr.blocks[0].get_values()
+   2712         else:
+-> 2713             return mgr._interleave()
+   2714 
+   2715     def _interleave(self):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\pandas\core\internals.pyc in _interleave(self)
+   2720         dtype = _interleaved_dtype(self.blocks)
+   2721 
+-> 2722         result = np.empty(self.shape, dtype=dtype)
+   2723 
+   2724         if result.shape[0] == 0:
+
+MemoryError: 
+
+
+
+In [102]:
+
+
+
+merged_inner1
+
+
+
+
+
+Out[102]:
+
+
+
+
+
+user_id
+
+attempts
+
+problem_id
+
+solved_status
+
+rating
+
+
+
+0
+1427919 11 913736 0 4.0 
+
+1
+1187633 20 913736 0 4.0 
+
+2
+1187633 20 913736 1 4.0 
+
+3
+1165859 14 913736 0 4.0 
+
+4
+1034822 11 913736 0 4.0 
+
+5
+1384250 11 913736 0 4.0 
+
+6
+1428122 1 913736 0 4.0 
+
+7
+1166111 1 913736 0 4.0 
+
+8
+1166158 42 913736 0 4.0 
+
+9
+1144005 18 913736 0 4.0 
+
+10
+1035196 19 913736 0 4.0 
+
+11
+1035196 19 913736 1 4.0 
+
+12
+1035226 44 913736 1 4.0 
+
+13
+1035270 14 913736 0 4.0 
+
+14
+1166351 66 913736 0 4.0 
+
+15
+1166430 2 913736 1 4.0 
+
+16
+1384339 19 913736 0 4.0 
+
+17
+1166476 27 913736 0 4.0 
+
+18
+1428624 1 913736 0 4.0 
+
+19
+1035532 30 913736 0 4.0 
+
+20
+1035541 24 913736 0 4.0 
+
+21
+1035592 14 913736 0 4.0 
+
+22
+1166670 1 913736 0 4.0 
+
+23
+1035620 13 913736 0 4.0 
+
+24
+1166694 3 913736 0 4.0 
+
+25
+1078552 8 913736 0 4.0 
+
+26
+947488 77 913736 0 4.0 
+
+27
+947488 77 913736 1 4.0 
+
+28
+904686 21 913736 0 4.0 
+
+29
+1166874 6 913736 1 4.0 
+
+...
+... ... ... ... ... 
+
+516056
+1131415 166 935846 1 2.5 
+
+516057
+1135792 72 935846 0 2.5 
+
+516058
+1009369 163 935846 1 2.5 
+
+516059
+1337012 5 935846 1 2.5 
+
+516060
+1275822 103 935846 1 2.5 
+
+516061
+1276572 5 935846 1 2.5 
+
+516062
+1409736 419 935846 1 2.5 
+
+516063
+1155218 187 935846 1 2.5 
+
+516064
+1099417 130 935846 1 2.5 
+
+516065
+1293851 144 935846 1 2.5 
+
+516066
+942937 56 906717 1 0.0 
+
+516067
+955565 16 906717 0 0.0 
+
+516068
+954615 16 906717 1 0.0 
+
+516069
+959602 66 906717 1 0.0 
+
+516070
+967270 8 906717 1 0.0 
+
+516071
+945555 85 906717 1 0.0 
+
+516072
+1207522 50 913270 1 0.0 
+
+516073
+1081207 172 913270 1 0.0 
+
+516074
+952684 469 913270 1 0.0 
+
+516075
+952684 469 913270 0 0.0 
+
+516076
+1088137 194 913270 0 0.0 
+
+516077
+1088166 457 913270 1 0.0 
+
+516078
+1099144 38 913270 1 0.0 
+
+516079
+1100558 112 913270 1 0.0 
+
+516080
+1009212 2 913270 1 0.0 
+
+516081
+1012026 151 913270 1 0.0 
+
+516082
+1081960 16 913270 1 0.0 
+
+516083
+1016727 141 913270 1 0.0 
+
+516084
+968968 158 937778 1 4.1 
+
+516085
+977865 6 917940 1 0.0 
+
+516073 rows × 5 columns
+
+
+
+In [246]:
+
+
+
+from sklearn import datasets
+from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
-from sklearn import metrics
 
-log_model2 = LogisticRegression()
 
-log_model2.fit(X_train,Y_train)
 
-Out[167]:
 
-LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
-          intercept_scaling=1, max_iter=100, multi_class='ovr',
-          penalty='l2', random_state=None, solver='liblinear', tol=0.0001,
-          verbose=0)
+In [250]:
 
-In [168]:
 
-class_predict = log_model2.predict(X_test)
-print metrics.accuracy_score(y_test,class_predict)
 
-0.694781388788
+# load the iris datasets
+dataset = datasets.load_iris()
+# create a base classifier used to evaluate a subset of attributes
+model = LogisticRegression()
+# create the RFE model and select 3 attributes
+rfe = RFE(model, 4)
+rfe = rfe.fit(dataset.data, dataset.target)
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
+
+
+
+
+
+
+[ True  True  True  True]
+[1 1 1 1]
+
+
+
+
+In [249]:
+
+
+
+dataset.feature_names
+
+
+
+
+
+Out[249]:
+
+['sepal length (cm)',
+ 'sepal width (cm)',
+ 'petal length (cm)',
+ 'petal width (cm)']
+
+
+
+In [251]:
+
+
+
+rfe = RFE(model, 5)
+rfe = rfe.fit(merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
+
+
+
+
+
+
+[False  True  True False  True  True False False  True]
+[5 1 1 4 1 1 2 3 1]
+
+
+
+
+In [253]:
+
+
+
+merged_inner1.columns
+
+
+
+
+
+Out[253]:
+
+Index([u'user_id', u'solved_count_x', u'attempts', u'problem_id',
+       u'solved_status', u'level', u'accuracy', u'solved_count_y',
+       u'error_count', u'rating'],
+      dtype='object')
+
+
 
 In [ ]:
 
- 
+
+
+rfe.
 
