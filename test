@@ -903,4 +903,8 @@ Index([u'user_id', u'solved_count_x', u'attempts', u'problem_id',
 In [ ]:
 
  
-
+http://nilearn.github.io/decoding/decoding_tutorial.html
+http://www.alfredo.motta.name/cross-validation-done-wrong/
+http://scikit-learn.org/stable/modules/feature_selection.html#recursive-feature-elimination
+http://scikit-learn.org/stable/modules/ensemble.html
+http://www.analyticsvidhya.com/blog/2015/05/k-fold-cross-validation-simple/
