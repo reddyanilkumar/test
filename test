@@ -902,7 +902,50 @@ Index([u'user_id', u'solved_count_x', u'attempts', u'problem_id',
 
 In [ ]:
 
+from sklearn.preprocessing import LabelEncoder
+lbl = LabelEncoder()
+categorical_features = []
+categorical_features_columns = ['level', 'user_type', 'tag1']
+
+for cat in categorical_features_columns: 
+    lbl = LabelEncoder() 
+    lbl.fit(merged_inner1[cat]) 
+    categorical_features.append(lbl.transform(merged_inner1[cat])) 
+for cat in categorical_features_columns: 
+    lbl = LabelEncoder() 
+    lbl.fit(merged_inner1[cat]) 
+    categorical_features.append(lbl.transform(merged_inner1[cat])) 
+
+
+# determine unique skills
+skills = set()
+for m in merged_inner1.skills:
+    skills.update(g for g in m.split('|'))
+skills = sorted(skills)
+
+print skills
+
+
+#make a column for each skill
+for skill in skills:
+    merged_inner1[skill] = [int(skill in s.split('|')) for s in merged_inner1.skills]
+    
+ merged_inner1['per_people_solved'] = merged_inner1.solved_count_y * 1. / (merged_inner1.solved_count_y + merged_inner1.error_count)
+ merged_inner1['per_user_solved'] = merged_inner1.solved_count_x * 1. / (merged_inner1.solved_count_x + merged_inner1.attempts)
  
+ features = [ 'user_id','problem_id','per_user_solved',
+       'level', 'accuracy','per_people_solved']
+       
+       features = [ 'user_id','problem_id','solved_count_x', 'attempts',
+       'level', 'accuracy', 'Befunge', 'C','C#','C++',
+       'C++ (g++ 4.8.1)', 'Clojure', 'Go', 'Haskell', 'Java',
+       'Java (openjdk 1.7.0_09)', 'JavaScript', 'JavaScript(Node.js)',
+       'JavaScript(Rhino)', 'Lisp', 'Objective-C', 'PHP', 'Pascal',
+       'Perl', 'Python', 'Python 3', 'R(RScript)', 'Ruby', 'Rust',
+       'Scala', 'Text', 'Whenever','per_people_solved']
+       
+      from sklearn.cross_validation import train_test_split
+X_train,X_test,Y_train,y_test = train_test_split(merged_inner1[features],merged_inner1.solved_status)
 http://nilearn.github.io/decoding/decoding_tutorial.html
 http://www.alfredo.motta.name/cross-validation-done-wrong/
 http://scikit-learn.org/stable/modules/feature_selection.html#recursive-feature-elimination
