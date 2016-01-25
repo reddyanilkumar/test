@@ -1,0 +1,1391 @@
+
+In [1]:
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
+
+In [2]:
+
+user_df= pd.read_csv("train/users.csv")
+prob_df= pd.read_csv("train/problems.csv")
+sub_df= pd.read_csv("train/submissions.csv")
+
+In [90]:
+
+test_user_df= pd.read_csv("test/users.csv")
+test_prob_df= pd.read_csv("test/problems.csv")
+test_sub_df= pd.read_csv("test/test.csv")
+
+In [91]:
+
+test_prob_df.count()
+
+Out[91]:
+
+problem_id      956
+level           752
+accuracy        956
+solved_count    956
+error_count     956
+rating          956
+tag1            666
+tag2            422
+tag3            158
+tag4             41
+tag5              7
+dtype: int64
+
+In [5]:
+
+test_sub_df.count()
+
+Out[5]:
+
+Id            35618
+user_id       35618
+problem_id    35618
+dtype: int64
+
+In [6]:
+
+test_user_df.count()
+
+Out[6]:
+
+user_id         15279
+skills          15279
+solved_count    15279
+attempts        15279
+user_type        8459
+dtype: int64
+
+In [7]:
+
+user_df.count()
+
+Out[7]:
+
+user_id         62530
+skills          62271
+solved_count    62530
+attempts        62530
+user_type       34215
+dtype: int64
+
+In [8]:
+
+prob_df.count()
+
+Out[8]:
+
+problem_id      1002
+level            768
+accuracy        1002
+solved_count    1002
+error_count     1002
+rating          1002
+tag1             725
+tag2             473
+tag3             181
+tag4              46
+tag5               6
+dtype: int64
+
+In [9]:
+
+sub_df.count()
+
+Out[9]:
+
+user_id           1198131
+problem_id        1198131
+solved_status     1198131
+result            1198131
+language_used     1198131
+execution_time    1198131
+dtype: int64
+
+In [10]:
+
+merged_inner = pd.merge(user_df,sub_df,on='user_id')
+
+In [92]:
+
+test_merged_inner = pd.merge(test_user_df,test_sub_df,on='user_id')
+
+In [93]:
+
+test_merged_inner1 = pd.merge(left=test_merged_inner,right=test_prob_df,left_on='problem_id', right_on='problem_id')
+
+In [94]:
+
+test_merged_inner1.count()
+
+Out[94]:
+
+user_id           35618
+skills            35618
+solved_count_x    35618
+attempts          35618
+user_type         20550
+Id                35618
+problem_id        35618
+level             32167
+accuracy          35618
+solved_count_y    35618
+error_count       35618
+rating            35618
+tag1              27502
+tag2              16562
+tag3               4042
+tag4                673
+tag5                280
+dtype: int64
+
+In [14]:
+
+merged_inner.count()
+
+Out[14]:
+
+user_id           1198131
+skills            1198131
+solved_count      1198131
+attempts          1198131
+user_type          832126
+problem_id        1198131
+solved_status     1198131
+result            1198131
+language_used     1198131
+execution_time    1198131
+dtype: int64
+
+In [15]:
+
+merged_inner.drop('language_used', axis=1, inplace=True)
+merged_inner.drop('result', axis=1, inplace=True)
+merged_inner.drop('execution_time', axis=1, inplace=True)
+
+In [16]:
+
+merged_inner.drop_duplicates(inplace=True)
+
+In [17]:
+
+merged_inner.drop('user_type', axis=1, inplace=True)
+
+In [95]:
+
+test_merged_inner1.drop('user_type', axis=1, inplace=True)
+
+In [19]:
+
+merged_inner.head()
+
+Out[19]:
+	user_id 	skills 	solved_count 	attempts 	problem_id 	solved_status
+0 	1427919 	C++ 	0 	11 	913736 	AT
+11 	1034704 	C 	3 	11 	906741 	AT
+13 	1034704 	C 	3 	11 	906741 	SO
+15 	1034704 	C 	3 	11 	909152 	SO
+17 	1034704 	C 	3 	11 	909145 	SO
+In [96]:
+
+test_merged_inner1.head()
+
+Out[96]:
+	user_id 	skills 	solved_count_x 	attempts 	Id 	problem_id 	level 	accuracy 	solved_count_y 	error_count 	rating 	tag1 	tag2 	tag3 	tag4 	tag5
+0 	1444303 	Python 	0 	5 	14425 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+1 	1461057 	Python 	0 	2 	18638 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+2 	1002312 	Python|PHP 	0 	5 	9929 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+3 	1002353 	Python 	14 	6 	20229 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+4 	1068032 	Python|C|Java|C++ 	84 	36 	25139 	940002 	E 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+In [20]:
+
+merged_inner.corr()
+
+Out[20]:
+	user_id 	solved_count 	attempts 	problem_id
+user_id 	1.000000 	-0.120974 	-0.168427 	0.351435
+solved_count 	-0.120974 	1.000000 	0.737944 	0.039585
+attempts 	-0.168427 	0.737944 	1.000000 	-0.017755
+problem_id 	0.351435 	0.039585 	-0.017755 	1.000000
+In [23]:
+
+corr = merged_inner.corr()[merged_inner.corr() < 1].abs()
+corr.sort(ascending=False)
+corr.head()
+
+Out[23]:
+	user_id 	solved_count 	attempts 	problem_id
+user_id 	NaN 	0.120974 	0.168427 	0.351435
+solved_count 	0.120974 	NaN 	0.737944 	0.039585
+attempts 	0.168427 	0.737944 	NaN 	0.017755
+problem_id 	0.351435 	0.039585 	0.017755 	NaN
+In [20]:
+
+merged_inner1 = pd.merge(left=merged_inner,right=prob_df,left_on='problem_id', right_on='problem_id')
+
+In [21]:
+
+merged_inner1.count()
+
+Out[21]:
+
+user_id           516086
+skills            516086
+solved_count_x    516086
+attempts          516086
+problem_id        516086
+solved_status     516086
+level             475645
+accuracy          516086
+solved_count_y    516086
+error_count       516086
+rating            516086
+tag1              448577
+tag2              300295
+tag3               97188
+tag4               20003
+tag5                4782
+dtype: int64
+
+In [39]:
+
+merged_inner1.drop('tag5', axis=1, inplace=True)
+
+merged_inner1.drop('tag4', axis=1, inplace=True)
+
+merged_inner1.drop('tag3', axis=1, inplace=True)
+
+merged_inner1.drop('tag2', axis=1, inplace=True)
+
+merged_inner1.drop('tag1', axis=1, inplace=True)
+
+In [103]:
+
+test_merged_inner1.drop('tag5', axis=1, inplace=True)
+
+test_merged_inner1.drop('tag4', axis=1, inplace=True)
+
+test_merged_inner1.drop('tag3', axis=1, inplace=True)
+
+test_merged_inner1.drop('tag2', axis=1, inplace=True)
+
+test_merged_inner1.drop('tag1', axis=1, inplace=True)
+
+In [40]:
+
+merged_inner1.drop('skills', axis=1, inplace=True)
+#merged_inner1.drop('level', axis=1, inplace=True)
+#merged_inner1.drop('solved_status', axis=1, inplace=True)
+
+In [104]:
+
+test_merged_inner1.drop('skills', axis=1, inplace=True)
+#test_merged_inner1.drop('level', axis=1, inplace=True)
+
+In [91]:
+
+merged_inner1.count()
+
+Out[91]:
+
+516073
+
+In [31]:
+
+test_merged_inner1.head()
+
+Out[31]:
+	user_id 	solved_count_x 	attempts 	Id 	problem_id 	level 	accuracy 	solved_count_y 	error_count 	rating
+0 	1444303 	0 	5 	14425 	940002 	E 	0.42 	63 	371 	3.7
+1 	1461057 	0 	2 	18638 	940002 	E 	0.42 	63 	371 	3.7
+2 	1002312 	0 	5 	9929 	940002 	E 	0.42 	63 	371 	3.7
+3 	1002353 	14 	6 	20229 	940002 	E 	0.42 	63 	371 	3.7
+4 	1068032 	84 	36 	25139 	940002 	E 	0.42 	63 	371 	3.7
+In [22]:
+
+merged_inner1.solved_status.unique()
+
+Out[22]:
+
+array(['AT', 'SO', 'UK'], dtype=object)
+
+In [23]:
+
+merged_inner1 = merged_inner1[merged_inner1.solved_status != 'UK']
+
+In [24]:
+
+def transform_solved_status(ss):
+    if (ss == 'SO'):
+        return 1
+    if (ss == 'AT'):
+        return 0
+
+In [25]:
+
+merged_inner1['solved_status'] = merged_inner1['solved_status'].map(transform_solved_status)
+
+In [97]:
+
+def transform_level(l):
+    if(l == 'E'):
+        return 0
+    if(l == 'M'):
+        return 1
+    if(l == 'H'):
+        return 2
+    if(l == 'E-M'):
+        return 3
+    if(l == 'M-H'):
+        return 4
+
+In [98]:
+
+merged_inner1['level'] = merged_inner1['level'].map(transform_level)
+
+In [28]:
+
+# determine unique skills
+skills = set()
+for m in merged_inner1.skills:
+    skills.update(g for g in m.split('|'))
+skills = sorted(skills)
+
+In [29]:
+
+#make a column for each skill
+for skill in skills:
+    merged_inner1[skill] = [int(skill in s.split('|')) for s in merged_inner1.skills]
+
+In [101]:
+
+# do same calculation for test set as well
+for skill in skills:
+    test_merged_inner1[skill] = [int(skill in s.split('|')) for s in test_merged_inner1.skills]
+
+In [30]:
+
+# determine problem tags
+problem_tags = set()
+for tag1, tag2, tag3, tag4, tag5 in zip(merged_inner1.tag1, merged_inner1.tag2, merged_inner1.tag3, merged_inner1.tag4, merged_inner1.tag5):
+    problem_tags.update([tag1, tag2, tag3, tag4, tag5])
+problem_tags = sorted(problem_tags)
+
+In [31]:
+
+problem_tags[0] = 'Not Specified'
+
+In [32]:
+
+# make a column for each problem type
+for problem_tag in problem_tags:
+    merged_inner1[problem_tag] = [int(problem_tag in tags) for tags in merged_inner1[['tag1', 'tag2', 'tag3', 'tag4', 'tag5']].values]
+
+In [102]:
+
+for problem_tag in problem_tags:
+    test_merged_inner1[problem_tag] = [int(problem_tag in tags) for tags in test_merged_inner1[['tag1', 'tag2', 'tag3', 'tag4', 'tag5']].values]
+
+In [33]:
+
+merged_inner1['Maps'].unique()
+
+Out[33]:
+
+array([0, 1])
+
+In [72]:
+
+merged_inner1['accuracy'] = (merged_inner1.accuracy*10).apply(np.round)
+
+/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:1: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  if __name__ == '__main__':
+
+In [214]:
+
+test_merged_inner1['accuracy'] = (test_merged_inner1.accuracy*10).apply(np.round)
+
+In [36]:
+
+test_merged_inner1.accuracy.unique()
+
+Out[36]:
+
+array([ 0.42,  0.32,  0.45,  0.92,  0.74,  0.89,  0.91,  0.87,  0.3 ,
+        0.25,  0.56,  0.71,  0.46,  0.43,  0.6 ,  0.53,  0.85,  0.77,
+        0.84,  0.52,  0.96,  0.93,  0.8 ,  0.57,  0.21,  0.35,  0.28,
+        0.55,  0.62,  0.76,  0.63,  0.9 ,  0.83,  0.95,  0.66,  0.69,
+        0.41,  0.12,  0.58,  0.79,  0.06,  0.09,  0.26,  0.39,  0.64,
+        0.5 ,  0.47,  0.37,  0.11,  0.94,  0.18,  0.33,  0.7 ,  0.67,
+        0.07,  0.65,  0.31,  0.75,  0.54,  0.36,  0.16,  0.82,  0.48,
+        0.88,  0.72,  0.81,  0.19,  0.86,  0.78,  0.22,  0.38,  0.61,
+        0.23,  0.34,  0.14,  0.4 ,  0.05,  0.17,  0.68,  1.  ,  0.04,
+        0.49,  0.24,  0.29,  0.02,  0.2 ,  0.97,  0.73,  0.15,  0.08,
+        0.13,  0.27,  0.44,  0.59,  0.51,  0.1 ,  0.98,  0.03])
+
+In [39]:
+
+sns.factorplot('accuracy',data=merged_inner1,kind="count",hue='solved_status',order=[1,2,3,4,5,6,7,8,9,10])
+
+Out[39]:
+
+<seaborn.axisgrid.FacetGrid at 0x7f96bd07d650>
+
+In [34]:
+
+merged_inner1['level'] = merged_inner1.level.fillna(0)
+merged_inner1.level.unique()
+
+Out[34]:
+
+array([ 1.,  0.,  3.,  2.,  4.])
+
+In [100]:
+
+test_merged_inner1['level'] = test_merged_inner1.level.fillna(0)
+test_merged_inner1.level.unique()
+
+Out[100]:
+
+array([ 0.,  2.,  1.,  3.,  4.])
+
+In [55]:
+
+merged_inner1['rating'] = merged_inner1['rating'].apply(np.round)
+
+/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:1: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+  if __name__ == '__main__':
+
+In [41]:
+
+sns.factorplot('rating',data=merged_inner1,kind="count",size=5)
+
+Out[41]:
+
+<seaborn.axisgrid.FacetGrid at 0x7f96aff13950>
+
+In [53]:
+
+sns.factorplot('level',data=merged_inner1,kind="count",hue="solved_status",size=5)
+
+Out[53]:
+
+<seaborn.axisgrid.FacetGrid at 0x7fdd5900f7d0>
+
+In [99]:
+
+test_merged_inner1['level'] = test_merged_inner1['level'].map(transform_level)
+
+In [36]:
+
+merged_inner1 = merged_inner1.dropna()
+
+In [41]:
+
+merged_inner1.head()
+
+Out[41]:
+	user_id 	solved_count_x 	attempts 	problem_id 	solved_status 	level 	accuracy 	solved_count_y 	error_count 	rating 	... 	String-Manipulation 	Suffix Arrays 	Trees 	Trie 	Two-pointer 	Very Easy 	adhoc 	cake-walk 	people_solved_ratio 	user_solved_ratio
+260580 	1165886 	37 	53 	913739 	0 	0 	0.58 	425 	2607 	4.4 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.140172 	0.411111
+260581 	1165886 	37 	53 	913739 	1 	0 	0.58 	425 	2607 	4.4 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.140172 	0.411111
+260582 	1165904 	1 	20 	913739 	0 	0 	0.58 	425 	2607 	4.4 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.140172 	0.047619
+260583 	1034996 	48 	74 	913739 	1 	0 	0.58 	425 	2607 	4.4 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.140172 	0.393443
+260584 	1035056 	0 	2 	913739 	0 	0 	0.58 	425 	2607 	4.4 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.140172 	0.000000
+
+5 rows × 117 columns
+In [106]:
+
+test_merged_inner1.head()
+
+Out[106]:
+	user_id 	solved_count_x 	attempts 	Id 	problem_id 	level 	accuracy 	solved_count_y 	error_count 	rating 	... 	String-Manipulation 	Suffix Arrays 	Trees 	Trie 	Two-pointer 	Very Easy 	adhoc 	cake-walk 	people_solved_ratio 	user_solved_ratio
+0 	1444303 	0 	5 	14425 	940002 	0 	0.42 	63 	371 	3.7 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.145161 	0.0
+1 	1461057 	0 	2 	18638 	940002 	0 	0.42 	63 	371 	3.7 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.145161 	0.0
+2 	1002312 	0 	5 	9929 	940002 	0 	0.42 	63 	371 	3.7 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.145161 	0.0
+3 	1002353 	14 	6 	20229 	940002 	0 	0.42 	63 	371 	3.7 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.145161 	0.7
+4 	1068032 	84 	36 	25139 	940002 	0 	0.42 	63 	371 	3.7 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0.145161 	0.7
+
+5 rows × 117 columns
+In [38]:
+
+merged_inner1['people_solved_ratio'] = merged_inner1.solved_count_y * 1./ (merged_inner1.solved_count_y + merged_inner1.error_count)
+merged_inner1['user_solved_ratio'] = merged_inner1.solved_count_x * 1./ (merged_inner1.solved_count_x + merged_inner1.attempts)
+
+In [105]:
+
+test_merged_inner1['people_solved_ratio'] = test_merged_inner1.solved_count_y * 1./ (test_merged_inner1.solved_count_y + test_merged_inner1.error_count)
+test_merged_inner1['user_solved_ratio'] = test_merged_inner1.solved_count_x * 1./ (test_merged_inner1.solved_count_x + test_merged_inner1.attempts)
+
+In [42]:
+
+features = merged_inner1.columns
+
+In [43]:
+
+features = ['user_id','problem_id','solved_count_x','user_solved_ratio','people_solved_ratio',
+       'accuracy', 'solved_count_y','error_count','Befunge', 'C','C#','C++',
+       'C++ (g++ 4.8.1)', 'Clojure', 'Go', 'Haskell', 'Java',
+       'Java (openjdk 1.7.0_09)', 'JavaScript', 'JavaScript(Node.js)',
+       'JavaScript(Rhino)', 'Lisp', 'Objective-C', 'PHP', 'Pascal',
+       'Perl', 'Python', 'Python 3', 'R(RScript)', 'Ruby', 'Rust',
+       'Scala', 'Text', 'Whenever'] + merged_inner1.columns[36:115].tolist()
+
+In [107]:
+
+test_merged_inner1.columns[36:115].tolist()
+
+Out[107]:
+
+['Not Specified',
+ 'Ad-Hoc',
+ 'Ad-hoc',
+ 'Algorithms',
+ 'BFS',
+ 'BIT',
+ 'Basic Programming',
+ 'Basic-Programming',
+ 'Bellman Ford',
+ 'Binary Search',
+ 'Binary Search Tree',
+ 'Binary Tree',
+ 'Bipartite Graph',
+ 'Bit manipulation',
+ 'Bitmask',
+ 'Brute Force',
+ 'Combinatorics',
+ 'Completed',
+ 'DFS',
+ 'Data Structures',
+ 'Data-Structures',
+ 'Dijkstra',
+ 'Disjoint Set',
+ 'Divide And Conquer',
+ 'Dynamic Programming',
+ 'Easy-medium',
+ 'Expectation',
+ 'Extended Euclid',
+ 'FFT',
+ 'Fenwick Tree',
+ 'Flow',
+ 'Floyd Warshall',
+ 'GCD',
+ 'Game Theory',
+ 'Geometry',
+ 'Graph Theory',
+ 'Greedy',
+ 'HashMap',
+ 'Hashing',
+ 'Heap',
+ 'Heavy light decomposition',
+ 'Implementation',
+ 'KMP',
+ 'Kruskal',
+ 'Line-sweep',
+ 'Maps',
+ 'Matching',
+ 'Math',
+ 'Matrix Exponentiation',
+ 'Memoization',
+ 'Minimum Spanning Tree',
+ 'Modular arithmetic',
+ 'Modular exponentiation',
+ 'Number Theory',
+ 'Prime Factorization',
+ 'Priority Queue',
+ 'Priority-Queue',
+ 'Probability',
+ 'Queue',
+ 'Recursion',
+ 'Sailesh Arya',
+ 'Segment Trees',
+ 'Set',
+ 'Shortest-path',
+ 'Sieve',
+ 'Simple-math',
+ 'Simulation',
+ 'Sorting',
+ 'Sqrt-Decomposition',
+ 'Stack',
+ 'String Algorithms',
+ 'String-Manipulation',
+ 'Suffix Arrays',
+ 'Trees',
+ 'Trie',
+ 'Two-pointer',
+ 'Very Easy',
+ 'adhoc',
+ 'cake-walk']
+
+In [45]:
+
+merged_inner1.isnull().any()
+
+Out[45]:
+
+user_id                    False
+solved_count_x             False
+attempts                   False
+problem_id                 False
+solved_status              False
+level                      False
+accuracy                   False
+solved_count_y             False
+error_count                False
+rating                     False
+Befunge                    False
+C                          False
+C#                         False
+C++                        False
+C++ (g++ 4.8.1)            False
+Clojure                    False
+Go                         False
+Haskell                    False
+Java                       False
+Java (openjdk 1.7.0_09)    False
+JavaScript                 False
+JavaScript(Node.js)        False
+JavaScript(Rhino)          False
+Lisp                       False
+Objective-C                False
+PHP                        False
+Pascal                     False
+Perl                       False
+Python                     False
+Python 3                   False
+                           ...  
+Modular arithmetic         False
+Modular exponentiation     False
+Number Theory              False
+Prime Factorization        False
+Priority Queue             False
+Priority-Queue             False
+Probability                False
+Queue                      False
+Recursion                  False
+Sailesh Arya               False
+Segment Trees              False
+Set                        False
+Shortest-path              False
+Sieve                      False
+Simple-math                False
+Simulation                 False
+Sorting                    False
+Sqrt-Decomposition         False
+Stack                      False
+String Algorithms          False
+String-Manipulation        False
+Suffix Arrays              False
+Trees                      False
+Trie                       False
+Two-pointer                False
+Very Easy                  False
+adhoc                      False
+cake-walk                  False
+people_solved_ratio        False
+user_solved_ratio          False
+dtype: bool
+
+In [59]:
+
+from sklearn.cross_validation import train_test_split
+X_train,X_test,Y_train,y_test = train_test_split(merged_inner1[features],merged_inner1.solved_status)
+
+In [47]:
+
+X_train.head()
+
+Out[47]:
+	user_id 	problem_id 	solved_count_x 	user_solved_ratio 	people_solved_ratio 	accuracy 	solved_count_y 	error_count 	Befunge 	C 	... 	Stack 	String Algorithms 	String-Manipulation 	Suffix Arrays 	Trees 	Trie 	Two-pointer 	Very Easy 	adhoc 	cake-walk
+261247 	1204378 	913739 	15 	0.365854 	0.140172 	0.58 	425 	2607 	0 	0 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+390331 	972734 	907811 	7 	0.250000 	0.633574 	0.85 	351 	203 	0 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+260717 	912319 	913739 	15 	0.141509 	0.140172 	0.58 	425 	2607 	0 	0 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+260997 	1190780 	913739 	10 	0.270270 	0.140172 	0.58 	425 	2607 	0 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+390180 	951946 	907811 	48 	0.500000 	0.633574 	0.85 	351 	203 	0 	0 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+
+5 rows × 113 columns
+In [113]:
+
+from sklearn.svm import LinearSVC
+svm = LinearSVC(C=0.1)
+svm.fit(X_train,Y_train)
+
+svm.score(X_train,Y_train)
+
+Out[113]:
+
+0.6213582707515144
+
+In [114]:
+
+svm.score(X_test,y_test)
+
+Out[114]:
+
+0.62347786598493005
+
+In [69]:
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(n_estimators=15,random_state=33)
+
+In [67]:
+
+rf.fit(X_train,Y_train)
+
+rf.score(X_train,Y_train)
+
+Out[67]:
+
+0.86008820543029219
+
+In [68]:
+
+rf.score(X_test,y_test)
+
+Out[68]:
+
+0.5891471666524567
+
+In [49]:
+
+from sklearn import metrics
+class_predict = rf.predict(X_test)
+print metrics.accuracy_score(y_test,class_predict)
+
+0.591548531612
+
+In [73]:
+
+from sklearn.metrics import mean_squared_error,r2_score
+from sklearn.ensemble import GradientBoostingClassifier
+
+In [74]:
+
+clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.01,max_depth=1, random_state=0).fit(X_train, Y_train)
+clf.score(X_train,Y_train)
+
+Out[74]:
+
+0.67958728388176237
+
+In [136]:
+
+clf.score(X_test,y_test)
+
+Out[136]:
+
+0.67321867321867324
+
+In [60]:
+
+from sklearn.ensemble import AdaBoostClassifier
+
+In [61]:
+
+clf1 = AdaBoostClassifier(n_estimators=100).fit(X_train,Y_train)
+
+In [139]:
+
+clf1.score(X_train,Y_train)
+
+Out[139]:
+
+0.73643987660636501
+
+In [140]:
+
+clf1.score(X_test, y_test)
+
+Out[140]:
+
+0.73585285888125007
+
+In [141]:
+
+from sklearn.cross_validation import cross_val_score
+scores = cross_val_score(clf1,merged_inner1[features],merged_inner1.solved_status)
+print scores
+print np.mean(scores)
+
+[ 0.7154309   0.73274078  0.73217691]
+0.726782860859
+
+In [85]:
+
+from sklearn.cross_validation import cross_val_score
+scores = cross_val_score(clf,merged_inner1[features],merged_inner1.solved_status)
+print scores
+print np.mean(scores)
+
+[ 0.71456142  0.73372747  0.73469672]
+0.727661872146
+
+In [62]:
+
+from sklearn.cross_validation import cross_val_score
+scores = cross_val_score(rf,merged_inner1[features],merged_inner1.solved_status)
+print scores
+print np.mean(scores)
+
+[ 0.68320835  0.65001987  0.61637874]
+0.649868984262
+
+In [48]:
+
+import xgboost as xgb
+from sklearn.cross_validation import cross_val_score
+
+In [125]:
+
+clf2 = xgb.XGBClassifier(n_estimators=1000)
+
+In [126]:
+
+scores = cross_val_score(clf2,merged_inner1[features],merged_inner1.solved_status)
+print scores
+print np.mean(scores)
+
+[ 0.5862069   0.62923463  0.68361582]
+0.633019115208
+
+In [51]:
+
+from sklearn import cross_validation
+from sklearn.metrics import accuracy_score
+from sklearn.cross_validation import StratifiedShuffleSplit
+
+In [133]:
+
+    cv = StratifiedShuffleSplit(merged_inner1.solved_status, n_iter=5, test_size=0.3)
+    scores = []
+
+    for train, test in cv1:
+        preds_combined = []
+
+          #  for clf2 in models:
+        X_train1, y_train1 = merged_inner1[features].iloc[train], merged_inner1.solved_status.iloc[train]
+        X_test1, y_test1 = merged_inner1[features].iloc[test], merged_inner1.solved_status.iloc[test]
+        clf.fit(X_train1, y_train1)
+        preds = clf.predict(X_test1)
+    
+        print("accuracy score: %f" % accuracy_score(y_test1, preds))
+
+       # preds_combined.append(preds)
+
+    #    preds_combined = majority_voting(preds_combined)
+      #  scores.append(accuracy_score(y_test, preds_combined))
+
+      #  print("combined score: %f" % scores[-1])
+
+accuracy score: 0.649269
+accuracy score: 0.676409
+accuracy score: 0.700837
+accuracy score: 0.694561
+accuracy score: 0.650628
+accuracy score: 0.677824
+accuracy score: 0.684100
+accuracy score: 0.665272
+accuracy score: 0.690377
+accuracy score: 0.661088
+
+In [127]:
+
+cv1 = cross_validation.KFold(len(merged_inner1[features]), n_folds=10, indices=True, shuffle=True, random_state=4)
+
+/home/anil/anaconda/lib/python2.7/site-packages/sklearn/cross_validation.py:69: DeprecationWarning: The indices parameter is deprecated and will be removed (assumed True) in 0.17
+  stacklevel=1)
+
+In [154]:
+
+from sklearn.cross_validation import StratifiedKFold
+from sklearn.feature_selection import RFECV
+rfecv = RFECV(estimator=log_model2, step=1, cv=cv,
+              scoring='accuracy')
+rfecv.fit(merged_inner1[features],merged_inner1.solved_status)
+
+print("Optimal number of features : %d" % rfecv.n_features_)
+print rfecv.score
+
+Optimal number of features : 12
+<function score at 0x7f21ec7ed500>
+
+In [162]:
+
+merged_inner1[features].columns
+
+Out[162]:
+
+Index([u'user_id', u'problem_id', u'solved_count_x', u'user_solved_ratio',
+       u'people_solved_ratio', u'accuracy', u'solved_count_y', u'error_count',
+       u'Befunge', u'C', 
+       ...
+       u'Stack', u'String Algorithms', u'String-Manipulation',
+       u'Suffix Arrays', u'Trees', u'Trie', u'Two-pointer', u'Very Easy',
+       u'adhoc', u'cake-walk'],
+      dtype='object', length=113)
+
+In [150]:
+
+from sklearn.model_selection import SelectFromModel
+
+---------------------------------------------------------------------------
+ImportError                               Traceback (most recent call last)
+<ipython-input-150-17980d3d9a64> in <module>()
+----> 1 from sklearn.model_selection import SelectFromModel
+
+ImportError: No module named model_selection
+
+In [165]:
+
+import sklearn
+sklearn.__version__
+
+Out[165]:
+
+'0.16.1'
+
+In [142]:
+
+clf_new = SelectFromModel(clf1, prefit=True)
+X_new = model.transform(merged_inner1[features])
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-142-bf9cb65a9caf> in <module>()
+----> 1 clf_new = SelectFromModel(clf1, prefit=True)
+      2 X_new = model.transform(merged_inner1[features])
+
+NameError: name 'SelectFromModel' is not defined
+
+In [135]:
+
+merged_inner1[features].count()
+
+Out[135]:
+
+user_id                    4782
+problem_id                 4782
+solved_count_x             4782
+user_solved_ratio          4782
+people_solved_ratio        4782
+accuracy                   4782
+solved_count_y             4782
+error_count                4782
+Befunge                    4782
+C                          4782
+C#                         4782
+C++                        4782
+C++ (g++ 4.8.1)            4782
+Clojure                    4782
+Go                         4782
+Haskell                    4782
+Java                       4782
+Java (openjdk 1.7.0_09)    4782
+JavaScript                 4782
+JavaScript(Node.js)        4782
+JavaScript(Rhino)          4782
+Lisp                       4782
+Objective-C                4782
+PHP                        4782
+Pascal                     4782
+Perl                       4782
+Python                     4782
+Python 3                   4782
+R(RScript)                 4782
+Ruby                       4782
+                           ... 
+Memoization                4782
+Minimum Spanning Tree      4782
+Modular arithmetic         4782
+Modular exponentiation     4782
+Number Theory              4782
+Prime Factorization        4782
+Priority Queue             4782
+Priority-Queue             4782
+Probability                4782
+Queue                      4782
+Recursion                  4782
+Sailesh Arya               4782
+Segment Trees              4782
+Set                        4782
+Shortest-path              4782
+Sieve                      4782
+Simple-math                4782
+Simulation                 4782
+Sorting                    4782
+Sqrt-Decomposition         4782
+Stack                      4782
+String Algorithms          4782
+String-Manipulation        4782
+Suffix Arrays              4782
+Trees                      4782
+Trie                       4782
+Two-pointer                4782
+Very Easy                  4782
+adhoc                      4782
+cake-walk                  4782
+dtype: int64
+
+In [132]:
+
+plt.figure()
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
+
+In [65]:
+
+scores = cross_val_score(clf1,merged_inner1[features],merged_inner1.solved_status,cv=cv, n_jobs = 1)
+print scores
+print np.mean(scores)
+
+[ 0.72151792  0.72454536  0.72010932  0.7205298   0.72366236  0.71932554
+  0.72437137  0.72441342  0.71869481  0.72304684]
+0.722021675291
+
+In [66]:
+
+x=merged_inner1[['solved_count_x','level','accuracy','rating','attempts','solved_count_y']]
+y=merged_inner1.solved_status
+len(merged_inner1[['solved_count_x','level','accuracy','rating','attempts','solved_count_y']])
+
+Out[66]:
+
+475645
+
+In [1]:
+
+for train_indices, test_indices in cv:
+    print train_indices,test_indices
+    clf1.fit(x[train_indices],y[train_indices])
+    print clf1.score(x[test_indices],y[test_indices])
+     
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-1-955d35933bd6> in <module>()
+----> 1 for train_indices, test_indices in cv:
+      2     print train_indices,test_indices
+      3     clf1.fit(x[train_indices],y[train_indices])
+      4     print clf1.score(x[test_indices],y[test_indices])
+      5 
+
+NameError: name 'cv' is not defined
+
+In [48]:
+
+X_test.head()
+
+Out[48]:
+	solved_count_x 	level 	accuracy 	rating 	attempts 	solved_count_y
+108387 	18 	0 	0.84 	3.4 	45 	4333
+23939 	24 	0 	0.56 	3.7 	46 	3916
+178120 	17 	0 	0.89 	3.9 	15 	2349
+242255 	10 	3 	0.33 	3.6 	12 	219
+268951 	67 	0 	0.19 	3.8 	56 	469
+In [67]:
+
+test_merged_inner1.head()
+
+Out[67]:
+	user_id 	skills 	solved_count_x 	attempts 	Id 	problem_id 	level 	accuracy 	solved_count_y 	error_count 	rating 	tag1 	tag2 	tag3 	tag4 	tag5
+0 	1444303 	Python 	0 	5 	14425 	940002 	0 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+1 	1461057 	Python 	0 	2 	18638 	940002 	0 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+2 	1002312 	Python|PHP 	0 	5 	9929 	940002 	0 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+3 	1002353 	Python 	14 	6 	20229 	940002 	0 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+4 	1068032 	Python|C|Java|C++ 	84 	36 	25139 	940002 	0 	0.42 	63 	371 	3.7 	Ad-Hoc 	Basic Programming 	Implementation 	NaN 	NaN
+In [111]:
+
+test_predict = clf1.predict(test_merged_inner1[features])
+
+In [112]:
+
+test_predict_df = pd.DataFrame(test_predict)
+test_predict_df.count()
+
+Out[112]:
+
+0    35618
+dtype: int64
+
+In [113]:
+
+test_predict_df.to_csv('submission-3.csv')
+
+In [54]:
+
+test_merged_inner1['level'].fillna(0, inplace=True)
+
+In [65]:
+
+def importances(estimator, col_array, title): 
+    # Calculate the feature ranking - Top 10
+    importances = estimator.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    print "%s Top 20 Important Features\n" %title
+    for f in range(50):
+        print("%d. %s (%f)" % (f + 1, col_array.columns[indices[f]], importances[indices[f]]))
+#Mean Feature Importance
+    print "\nMean Feature Importance %.6f" %np.mean(importances)
+
+In [114]:
+
+importances(clf1, merged_inner1[features], "Cover Type (Initial RF)")
+
+Cover Type (Initial RF) Top 20 Important Features
+
+1. user_solved_ratio (0.340000)
+2. user_id (0.280000)
+3. solved_count_x (0.160000)
+4. accuracy (0.020000)
+5. C++ (0.020000)
+6. Go (0.010000)
+7. Rust (0.010000)
+8. R(RScript) (0.010000)
+9. Pascal (0.010000)
+10. Objective-C (0.010000)
+11. Priority Queue (0.010000)
+12. JavaScript(Rhino) (0.010000)
+13. JavaScript (0.010000)
+14. Java (0.010000)
+15. Haskell (0.010000)
+16. Python (0.010000)
+17. Clojure (0.010000)
+18. C# (0.010000)
+19. C++ (g++ 4.8.1) (0.010000)
+20. C (0.010000)
+21. error_count (0.010000)
+22. solved_count_y (0.010000)
+23. problem_id (0.010000)
+24. Binary Tree (0.000000)
+25. Basic Programming (0.000000)
+26. Basic-Programming (0.000000)
+27. Bellman Ford (0.000000)
+28. Binary Search (0.000000)
+29. Binary Search Tree (0.000000)
+30. Bitmask (0.000000)
+31. Bipartite Graph (0.000000)
+32. Bit manipulation (0.000000)
+33. BFS (0.000000)
+34. Brute Force (0.000000)
+35. Combinatorics (0.000000)
+36. Completed (0.000000)
+37. DFS (0.000000)
+38. Data Structures (0.000000)
+39. BIT (0.000000)
+40. Not Specified (0.000000)
+41. Algorithms (0.000000)
+42. Dijkstra (0.000000)
+43. Java (openjdk 1.7.0_09) (0.000000)
+44. JavaScript(Node.js) (0.000000)
+45. Lisp (0.000000)
+46. Befunge (0.000000)
+47. PHP (0.000000)
+48. Perl (0.000000)
+49. Python 3 (0.000000)
+50. Ad-hoc (0.000000)
+
+Mean Feature Importance 0.008850
+
+In [15]:
+
+merged_inner1.drop('error_count', axis=1, inplace=True)
+
+merged_inner1.drop('solved_count_x', axis=1, inplace=True)
+
+merged_inner1.drop('solved_count_y', axis=1, inplace=True)
+
+merged_inner1.drop('accuracy', axis=1, inplace=True)
+
+merged_inner1.drop('attempts', axis=1, inplace=True)
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-15-6d80535d7488> in <module>()
+----> 1 merged_inner1.drop('error_count', axis=1, inplace=True)
+      2 
+      3 merged_inner1.drop('solved_count_x', axis=1, inplace=True)
+      4 
+      5 merged_inner1.drop('solved_count_y', axis=1, inplace=True)
+
+NameError: name 'merged_inner1' is not defined
+
+In [101]:
+
+from sklearn.neighbors import KNeighborsClassifier
+cls = KNeighborsClassifier()
+cls.fit(X_train,Y_train)
+print cls.score(X_train,Y_train)
+print cls.score(X_test,y_test)
+
+0.67098389372
+
+---------------------------------------------------------------------------
+KeyboardInterrupt                         Traceback (most recent call last)
+<ipython-input-101-52b8ada7b6ed> in <module>()
+      3 cls.fit(X_train,Y_train)
+      4 print cls.score(X_train,Y_train)
+----> 5 print cls.score(X_test,y_test)
+
+/home/anil/anaconda/lib/python2.7/site-packages/sklearn/base.pyc in score(self, X, y, sample_weight)
+    293         """
+    294         from .metrics import accuracy_score
+--> 295         return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
+    296 
+    297 
+
+/home/anil/anaconda/lib/python2.7/site-packages/sklearn/neighbors/classification.pyc in predict(self, X)
+    136         X = check_array(X, accept_sparse='csr')
+    137 
+--> 138         neigh_dist, neigh_ind = self.kneighbors(X)
+    139 
+    140         classes_ = self.classes_
+
+/home/anil/anaconda/lib/python2.7/site-packages/sklearn/neighbors/base.pyc in kneighbors(self, X, n_neighbors, return_distance)
+    372                     "or set algorithm='brute'" % self._fit_method)
+    373             result = self._tree.query(X, n_neighbors,
+--> 374                                       return_distance=return_distance)
+    375         else:
+    376             raise ValueError("internal: _fit_method not recognized")
+
+KeyboardInterrupt: 
+
+In [124]:
+
+from sklearn.cross_validation import cross_val_score
+import numpy as np
+scores = cross_val_score(clf2,merged_inner1[['solved_count_x','accuracy']],merged_inner1.solved_status)
+print (scores)
+print (np.mean(scores))
+
+[ 0.57241379  0.71706399  0.74199623]
+0.677158005529
+
+In [18]:
+
+from sklearn.cross_validation import cross_val_score
+import numpy as np
+scores = cross_val_score(cls,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
+print (scores)
+print (np.mean(scores))
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-18-bfeabb846b3c> in <module>()
+      1 from sklearn.cross_validation import cross_val_score
+      2 import numpy as np
+----> 3 scores = cross_val_score(cls,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
+      4 print (scores)
+      5 print (np.mean(scores))
+
+NameError: name 'merged_inner1' is not defined
+
+In [19]:
+
+from sklearn.cross_validation import cross_val_score
+import numpy as np
+scores = cross_val_score(svm,merged_inner1[['solved_count_x','solved_count_y','accuracy','rating']],merged_inner1.solved_status)
+print (scores)
+print (np.mean(scores))
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-19-f7e99e615668> in <module>()
+      1 from sklearn.cross_validation import cross_val_score
+      2 import numpy as np
+----> 3 scores = cross_val_score(svm,merged_inner1.ix[:, merged_inner1.columns != 'solved_status'],merged_inner1.solved_status)
+      4 print (scores)
+      5 print (np.mean(scores))
+
+NameError: name 'merged_inner1' is not defined
+
+In [115]:
+
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+
+log_model2 = LogisticRegression()
+
+In [116]:
+
+log_model2.fit(X_train,Y_train)
+
+Out[116]:
+
+LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='ovr',
+          penalty='l2', random_state=None, solver='liblinear', tol=0.0001,
+          verbose=0)
+
+In [117]:
+
+class_predict = log_model2.predict(X_test)
+print metrics.accuracy_score(y_test,class_predict)
+
+0.66220735786
+
+In [118]:
+
+from sklearn.feature_selection import RFE
+
+In [119]:
+
+rfe = RFE(log_model2, 1)
+rfe = rfe.fit(merged_inner1[features],merged_inner1.solved_status)
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
+
+[False False False  True False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False False False False False False False False
+ False False False False False]
+[ 43  45  40   1  33  20  41  42  67  29  36  14  51   5  11  10  39  53
+  44  13  48  50  18  37  17   8  21  49  52  38  47  46  54  79  81  16
+   6  34  28  76  27  84  86  88  90  92  94  96  98  26 102 104 106  31
+   9 112 113 111  15   3  72  71  64  73  75  74   2  66  68  32  35  65
+  24  55  56  23  85  69  70  19  57   7  77  78  80  12   4  87  58  22
+  25  60  59  62  61  63  82  83  30  89  91  93  95  97  99 100 101 103
+ 105 107 108 109 110]
+
+In [120]:
+
+merged_inner1.columns
+
+Out[120]:
+
+Index([u'user_id', u'solved_count_x', u'attempts', u'problem_id',
+       u'solved_status', u'level', u'accuracy', u'solved_count_y',
+       u'error_count', u'rating', 
+       ...
+       u'String-Manipulation', u'Suffix Arrays', u'Trees', u'Trie',
+       u'Two-pointer', u'Very Easy', u'adhoc', u'cake-walk',
+       u'people_solved_ratio', u'user_solved_ratio'],
+      dtype='object', length=117)
+
+In [ ]:
+
+ 
+
