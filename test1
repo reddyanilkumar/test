@@ -1,0 +1,103 @@
+
+In [1]:
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+In [2]:
+
+user_df= pd.read_csv("train/users.csv")
+prob_df= pd.read_csv("train/problems.csv")
+sub_df= pd.read_csv("train/submissions.csv")
+
+In [3]:
+
+test_user_df= pd.read_csv("test/users.csv")
+test_prob_df= pd.read_csv("test/problems.csv")
+test_sub_df= pd.read_csv("test/test.csv")
+
+In [4]:
+
+merged_inner = pd.merge(user_df,sub_df,on='user_id')
+
+In [5]:
+
+train = pd.merge(left=merged_inner,right=prob_df,left_on='problem_id', right_on='problem_id')
+
+In [6]:
+
+test_merged_inner = pd.merge(test_user_df,test_sub_df,on='user_id')
+
+In [7]:
+
+test = pd.merge(left=test_merged_inner,right=test_prob_df,left_on='problem_id', right_on='problem_id')
+
+In [8]:
+
+# preprocess skills feature
+
+# determine unique skills
+skills = set()
+for m in train.skills:
+    skills.update(g for g in m.split('|'))
+skills = sorted(skills)
+
+#make a column for each skill
+for skill in skills:
+    train[skill] = [int(skill in s.split('|')) for s in train.skills]
+
+In [9]:
+
+# do same calculation for test set as well
+for skill in skills:
+    test[skill] = [int(skill in s.split('|')) for s in test.skills]
+
+In [10]:
+
+# determine problem tags
+problem_tags = set()
+for tag1, tag2, tag3, tag4, tag5 in zip(train.tag1, train.tag2, train.tag3, train.tag4, train.tag5):
+    problem_tags.update([tag1, tag2, tag3, tag4, tag5])
+problem_tags = sorted(problem_tags)
+
+In [11]:
+
+problem_tags[0] = 'Not Specified'
+
+In [12]:
+
+# make a column for each problem type
+for problem_tag in problem_tags:
+    train[problem_tag] = [int(problem_tag in tags) for tags in train[['tag1', 'tag2', 'tag3', 'tag4', 'tag5']].values]
+
+In [13]:
+
+for problem_tag in problem_tags:
+        test[problem_tag] = [int(problem_tag in tags) for tags in test[['tag1', 'tag2', 'tag3', 'tag4', 'tag5']].values]
+
+In [14]:
+
+%run features.py
+%run models.py
+%run eval.py
+
+In [15]:
+
+ model = build_extreme_gradient_boosting(train, test)
+
+In [16]:
+
+# response variable
+y = train.solved_status
+
+In [ ]:
+
+scores = eval_models([model], train, y)
+
+In [ ]:
+
+print 'Mean: %f and Standard Deviation: %f' %(np.mean(scores), np.std(scores))
+
