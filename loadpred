@@ -1,0 +1,1116 @@
+
+
+
+
+In [38]:
+
+
+
+import pandas as pd
+import numpy as np 
+from sklearn import preprocessing
+from sklearn.ensemble import ExtraTreesClassifier, AdaBoostClassifier, BaggingClassifier
+from sklearn.metrics import roc_auc_score
+
+
+
+
+In [39]:
+
+
+
+train = pd.read_csv('train.csv')
+test = pd.read_csv('test.csv')
+
+
+
+
+In [40]:
+
+
+
+category_variables = {'Gender','Married','Dependents','Self_Employed','Property_Area'}
+numeric_variables = {'LoanAmount','Loan_Amount_Term','Credit_History'}
+for var in numeric_variables:
+    train[var] = train[var].fillna(value = train[var].mean())
+    test[var] = test[var].fillna(value = test[var].mean())
+train['Credibility'] = train['ApplicantIncome'] / train['LoanAmount']
+test['Credibility'] = test['ApplicantIncome'] / test['LoanAmount']
+
+
+
+
+In [41]:
+
+
+
+train = train.fillna(value = -1)
+test = test.fillna(value = -1)
+for var in category_variables:
+    lb = preprocessing.LabelEncoder()
+    full_data = pd.concat((train[var],test[var]),axis=0).astype('str')
+    lb.fit( full_data )
+    train[var] = lb.transform(train[var].astype('str'))
+    test[var] = lb.transform(test[var].astype('str'))
+
+
+
+
+In [42]:
+
+
+
+features = {'Credibility','Gender','Married','Dependents','Self_Employed','Property_Area','ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term','Credit_History'}
+
+
+
+
+In [43]:
+
+
+
+Loan_Status_map = {'Y': 1, 'N': 0}
+
+train['Loan_Status'] = train.Loan_Status.map(Loan_Status_map)
+
+
+
+
+In [44]:
+
+
+
+x = train[list(features)]
+y = train['Loan_Status']
+x_test = test[list(features)]
+
+
+
+
+In [45]:
+
+
+
+xseed = 42
+
+
+
+
+In [46]:
+
+
+
+clf = ExtraTreesClassifier(n_estimators = 1000, n_jobs = -1, verbose = 1, 
+                           class_weight = 'auto', min_samples_leaf = 5, 
+                           random_state = xseed)
+
+
+
+
+In [47]:
+
+
+
+clf.fit(x, y)
+
+
+
+
+
+
+[Parallel(n_jobs=-1)]: Done   1 out of   6 | elapsed:    0.0s remaining:    0.0s
+[Parallel(n_jobs=-1)]: Done 1000 out of 1000 | elapsed:    0.5s finished
+
+
+
+Out[47]:
+
+ExtraTreesClassifier(bootstrap=False, class_weight='auto', criterion='gini',
+           max_depth=None, max_features='auto', max_leaf_nodes=None,
+           min_samples_leaf=5, min_samples_split=2,
+           min_weight_fraction_leaf=0.0, n_estimators=1000, n_jobs=-1,
+           oob_score=False, random_state=42, verbose=1, warm_start=False)
+
+
+
+In [48]:
+
+
+
+a = clf.predict(x_test)
+
+
+
+
+
+
+[Parallel(n_jobs=2)]: Done   1 out of 288 | elapsed:    0.0s remaining:   10.8s
+[Parallel(n_jobs=2)]: Done 1000 out of 1000 | elapsed:    0.3s finished
+
+
+
+
+In [49]:
+
+
+
+from sklearn.ensemble import RandomForestClassifier
+rf = RandomForestClassifier(n_estimators=750,oob_score = True, max_features = "auto",random_state=30,min_samples_split=2, min_samples_leaf=2)
+
+
+
+
+In [50]:
+
+
+
+rf.fit(x, y)
+
+
+
+
+
+Out[50]:
+
+RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=2, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=750, n_jobs=1,
+            oob_score=True, random_state=30, verbose=0, warm_start=False)
+
+
+
+In [51]:
+
+
+
+b = rf.predict(x_test)
+
+
+
+
+In [52]:
+
+
+
+from sklearn.ensemble import AdaBoostClassifier
+ada = AdaBoostClassifier(n_estimators=500, learning_rate=0.01, random_state=42)
+
+
+
+
+In [53]:
+
+
+
+ada.fit(x, y)
+
+
+
+
+
+Out[53]:
+
+AdaBoostClassifier(algorithm='SAMME.R', base_estimator=None,
+          learning_rate=0.01, n_estimators=500, random_state=42)
+
+
+
+In [54]:
+
+
+
+c = ada.predict(x_test)
+
+
+
+
+In [55]:
+
+
+
+from collections import Counter
+import numpy as np
+
+def majority_voting(preds):
+    """
+    Given an array of predictions from various classifiers
+    return single array with ensemble of predictions based on
+    simple majority voting
+    
+    Input: list of list [[y1, y2, y3, ..], [y1, y2, y3, ...], ..] 
+    Output: final prediction [y1, y2, y3, ..]
+    """
+    length = [len(pred) for pred in preds]
+    
+    if len(set(length)) != 1:
+        raise ValueError('Predictions must be of the same length')
+    
+    pred_matrix = np.matrix(preds)
+    ensemble_preds = []
+    
+    for i in range(len(preds[0])):
+        pred_column = np.array(pred_matrix[:, i]).ravel()
+        common_pred = Counter(pred_column)
+        most_common = common_pred.most_common()[0][0]
+        
+        ensemble_preds.append(most_common)
+    
+    return ensemble_preds
+
+
+
+
+In [56]:
+
+
+
+ensemble_preds = majority_voting([a,b,c])
+
+
+
+
+In [58]:
+
+
+
+def convert_Status(x):
+    if x == 1 :
+        return 'Y'
+    else:
+        return 'N'
+
+
+
+
+In [60]:
+
+
+
+test['Loan_Status'] = ensemble_preds
+
+
+
+
+In [61]:
+
+
+
+test['Loan_Status'] = test.Loan_Status.map(convert_Status)
+
+
+
+
+In [63]:
+
+
+
+test.to_csv('ensemble-1.csv',columns=['Loan_ID','Loan_Status'],index=False)
+
+
+
+
+In [ ]:
+
+
+
+ 
+
+
+
+
+
+
+
+_______________________________________________________
+
+
+
+
+
+
+In [21]:
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import preprocessing
+import pandas as pd
+%matplotlib inline
+
+
+
+
+In [22]:
+
+
+
+train = pd.read_csv('train.csv')
+test = pd.read_csv('test.csv')
+
+
+
+
+In [23]:
+
+
+
+train.head()
+
+
+
+
+
+Out[23]:
+
+
+
+
+
+Loan_ID
+
+Gender
+
+Married
+
+Dependents
+
+Education
+
+Self_Employed
+
+ApplicantIncome
+
+CoapplicantIncome
+
+LoanAmount
+
+Loan_Amount_Term
+
+Credit_History
+
+Property_Area
+
+Loan_Status
+
+
+
+0
+LP001002 Male No 0 Graduate No 5849 0 NaN 360 1 Urban Y 
+
+1
+LP001003 Male Yes 1 Graduate No 4583 1508 128 360 1 Rural N 
+
+2
+LP001005 Male Yes 0 Graduate Yes 3000 0 66 360 1 Urban Y 
+
+3
+LP001006 Male Yes 0 Not Graduate No 2583 2358 120 360 1 Urban Y 
+
+4
+LP001008 Male No 0 Graduate No 6000 0 141 360 1 Urban Y 
+
+
+
+In [24]:
+
+
+
+category_variables = {'Gender','Married','Dependents','Self_Employed','Property_Area'}
+numeric_variables = {'LoanAmount','Loan_Amount_Term','Credit_History'}
+for var in numeric_variables:
+    train[var] = train[var].fillna(value = train[var].mean())
+    test[var] = test[var].fillna(value = test[var].mean())
+train['Credibility'] = train['ApplicantIncome'] / train['LoanAmount']
+test['Credibility'] = test['ApplicantIncome']  / test['LoanAmount']
+
+
+
+
+In [25]:
+
+
+
+train = train.fillna(value = -999)
+test = test.fillna(value = -999)
+for var in category_variables:
+    lb = preprocessing.LabelEncoder()
+    full_data = pd.concat((train[var],test[var]),axis=0).astype('str')
+    lb.fit( full_data )
+    train[var] = lb.transform(train[var].astype('str'))
+    test[var] = lb.transform(test[var].astype('str'))
+
+
+
+
+In [ ]:
+
+
+
+features = {'Credibility','Gender','Married','Dependents','Self_Employed','Property_Area','ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term','Credit_History'}
+
+#features = ['Credit_History', 'ApplicantIncome', 'LoanAmount', 'Credibility']
+
+
+
+
+In [27]:
+
+
+
+Loan_Status_map = {'Y': 1, 'N': 0}
+
+train['Loan_Status'] = train.Loan_Status.map(Loan_Status_map)
+
+
+
+
+In [ ]:
+
+
+
+x = train[list(features)]
+y = train['Loan_Status']
+x_test = test[list(features)]
+
+
+
+
+In [ ]:
+
+
+
+from sklearn.feature_selection import VarianceThreshold
+
+sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
+
+
+
+
+In [ ]:
+
+
+
+sel.fit_transform(x)
+
+
+
+
+In [57]:
+
+
+
+y.unique()
+
+
+
+
+
+Out[57]:
+
+array([1, 0], dtype=int64)
+
+
+
+In [30]:
+
+
+
+from sklearn.cross_validation import train_test_split
+X_train,X_test,Y_train,y_test = train_test_split(x,y)
+
+
+
+
+In [39]:
+
+
+
+rf = RandomForestClassifier(n_estimators=700,oob_score = True, max_features = "auto",random_state=30,min_samples_split=2, min_samples_leaf=2)
+
+
+
+
+In [49]:
+
+
+
+rf.fit(x,y)
+
+
+
+
+
+Out[49]:
+
+RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=2, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=700, n_jobs=1,
+            oob_score=True, random_state=30, verbose=0, warm_start=False)
+
+
+
+In [58]:
+
+
+
+pred_forest = rf.predict(x_test)
+
+
+
+
+In [51]:
+
+
+
+from sklearn.cross_validation import cross_val_score
+scores = cross_val_score(rf,x,y,cv=5)
+print (scores)
+print (np.mean(scores))
+
+
+
+
+
+
+[ 0.7983871   0.75806452  0.7704918   0.86065574  0.81967213]
+0.801454257007
+
+
+
+
+In [52]:
+
+
+
+def importances(estimator, col_array, title): 
+    # Calculate the feature ranking - Top 10
+    importances = estimator.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    print "%s Top 20 Important Features\n" %title
+    for f in range(8):
+        print("%d. %s (%f)" % (f + 1, col_array.columns[indices[f]], importances[indices[f]]))
+#Mean Feature Importance
+    print "\nMean Feature Importance %.6f" %np.mean(importances)
+
+
+
+
+In [53]:
+
+
+
+importances(rf,x, "Cover Type (Initial RF)")
+
+
+
+
+
+
+Cover Type (Initial RF) Top 20 Important Features
+
+1. Credit_History (0.350179)
+2. Credibility (0.153725)
+3. ApplicantIncome (0.147950)
+4. LoanAmount (0.134520)
+5. CoapplicantIncome (0.095372)
+6. Property_Area (0.042181)
+7. Dependents (0.041414)
+8. Loan_Amount_Term (0.034658)
+
+Mean Feature Importance 0.125000
+
+
+
+
+In [15]:
+
+
+
+from sklearn.ensemble import GradientBoostingClassifier
+#rf = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,max_depth=1, random_state=42)
+
+
+
+
+In [16]:
+
+
+
+from sklearn.ensemble import AdaBoostClassifier
+rf = AdaBoostClassifier(n_estimators=500, learning_rate=0.01, random_state=42)
+
+
+
+
+In [17]:
+
+
+
+rf.fit(x_train, y_train)
+
+
+
+
+
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-17-6b5e36de87b9> in <module>()
+----> 1 rf.fit(x_train, y_train)
+
+NameError: name 'x_train' is not defined
+
+
+
+In [15]:
+
+
+
+pred_ada= rf.predict(x_test)
+
+
+
+
+In [62]:
+
+
+
+rf1.score(pred_forest,y_test)
+
+
+
+
+
+
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+<ipython-input-62-a693f108f4b5> in <module>()
+----> 1 rf1.score(pred_forest,y_test)
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\base.pyc in score(self, X, y, sample_weight)
+    293         """
+    294         from .metrics import accuracy_score
+--> 295         return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
+    296 
+    297 
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\ensemble\forest.pyc in predict(self, X)
+    460         # for 1d.
+    461         X = check_array(X, ensure_2d=False, accept_sparse="csr")
+--> 462         proba = self.predict_proba(X)
+    463 
+    464         if self.n_outputs_ == 1:
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\ensemble\forest.pyc in predict_proba(self, X)
+    511                              backend="threading")(
+    512             delayed(_parallel_helper)(e, 'predict_proba', X, check_input=False)
+--> 513             for e in self.estimators_)
+    514 
+    515         # Reduce
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in __call__(self, iterable)
+    657             self._iterating = True
+    658             for function, args, kwargs in iterable:
+--> 659                 self.dispatch(function, args, kwargs)
+    660 
+    661             if pre_dispatch == "all" or n_jobs == 1:
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in dispatch(self, func, args, kwargs)
+    404         """
+    405         if self._pool is None:
+--> 406             job = ImmediateApply(func, args, kwargs)
+    407             index = len(self._jobs)
+    408             if not _verbosity_filter(index, self.verbose):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\externals\joblib\parallel.pyc in __init__(self, func, args, kwargs)
+    138         # Don't delay the application, to avoid keeping the input
+    139         # arguments in memory
+--> 140         self.results = func(*args, **kwargs)
+    141 
+    142     def get(self):
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\ensemble\forest.pyc in _parallel_helper(obj, methodname, *args, **kwargs)
+    104 def _parallel_helper(obj, methodname, *args, **kwargs):
+    105     """Private helper to workaround Python 2 pickle limitations"""
+--> 106     return getattr(obj, methodname)(*args, **kwargs)
+    107 
+    108 
+
+C:\Users\anilkumar_reddy01\AppData\Local\Continuum\Anaconda\lib\site-packages\sklearn\tree\tree.pyc in predict_proba(self, X, check_input)
+    588                              " match the input. Model n_features is %s and "
+    589                              " input n_features is %s "
+--> 590                              % (self.n_features_, n_features))
+    591 
+    592         proba = self.tree_.predict(X)
+
+ValueError: Number of features of the model must  match the input. Model n_features is 11 and  input n_features is 154 
+
+
+
+In [61]:
+
+
+
+pred_forest.shape
+
+
+
+
+
+Out[61]:
+
+(154,)
+
+
+
+In [13]:
+
+
+
+from sklearn.cross_validation import cross_val_score
+scores = cross_val_score(rf,x,y,cv=25)
+print (scores)
+print (np.mean(scores))
+
+
+
+
+
+
+[ 0.84        0.76        0.84        0.84        0.76        0.76        0.76
+  0.8         0.72        0.8         0.64        0.84        0.8         0.76
+  0.8         0.88        0.96        0.875       0.79166667  0.83333333
+  0.75        0.83333333  0.95652174  0.7826087   0.86956522]
+0.81008115942
+
+
+
+
+In [23]:
+
+
+
+from collections import Counter
+import numpy as np
+
+def majority_voting(preds):
+    """
+    Given an array of predictions from various classifiers
+    return single array with ensemble of predictions based on
+    simple majority voting
+    
+    Input: list of list [[y1, y2, y3, ..], [y1, y2, y3, ...], ..] 
+    Output: final prediction [y1, y2, y3, ..]
+    """
+    length = [len(pred) for pred in preds]
+    
+    if len(set(length)) != 1:
+        raise ValueError('Predictions must be of the same length')
+    
+    pred_matrix = np.matrix(preds)
+    ensemble_preds = []
+    
+    for i in range(len(preds[0])):
+        pred_column = np.array(pred_matrix[:, i]).ravel()
+        common_pred = Counter(pred_column)
+        most_common = common_pred.most_common()[0][0]
+        
+        ensemble_preds.append(most_common)
+    
+    return ensemble_preds
+
+
+
+
+In [24]:
+
+
+
+ensemble_preds = majority_voting([pred_forest, pred_ada])
+
+
+
+
+In [60]:
+
+
+
+def convert_Status(x):
+    if x==1:
+        return 'Y'
+    else:
+        return 'N'
+
+
+
+
+In [ ]:
+
+
+
+test['Loan_Status'] = pred_forest
+
+
+
+
+In [61]:
+
+
+
+test['Loan_Status'] = test['Loan_Status'].map(convert_Status)
+
+
+
+
+In [62]:
+
+
+
+test.to_csv('sub2.csv',columns=['Loan_ID','Loan_Status'],index=False)
+
+
+
+
+In [18]:
+
+
+
+"""
+==============================================
+Feature agglomeration vs. univariate selection
+==============================================
+
+This example compares 2 dimensionality reduction strategies:
+
+- univariate feature selection with Anova
+
+- feature agglomeration with Ward hierarchical clustering
+
+Both methods are compared in a regression problem using
+a BayesianRidge as supervised estimator.
+"""
+
+# Author: Alexandre Gramfort <alexandre.gramfort@inria.fr>
+# License: BSD 3 clause
+
+print(__doc__)
+
+import shutil
+import tempfile
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import linalg, ndimage
+
+from sklearn.feature_extraction.image import grid_to_graph
+from sklearn import feature_selection
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.linear_model import BayesianRidge
+from sklearn.pipeline import Pipeline
+from sklearn.grid_search import GridSearchCV
+from sklearn.externals.joblib import Memory
+from sklearn.cross_validation import KFold
+
+###############################################################################
+# Generate data
+n_samples = 200
+size = 40  # image size
+roi_size = 15
+snr = 5.
+np.random.seed(0)
+mask = np.ones([size, size], dtype=np.bool)
+
+coef = np.zeros((size, size))
+coef[0:roi_size, 0:roi_size] = -1.
+coef[-roi_size:, -roi_size:] = 1.
+
+X = np.random.randn(n_samples, size ** 2)
+for x in X:  # smooth data
+    x[:] = ndimage.gaussian_filter(x.reshape(size, size), sigma=1.0).ravel()
+X -= X.mean(axis=0)
+X /= X.std(axis=0)
+
+y = np.dot(X, coef.ravel())
+noise = np.random.randn(y.shape[0])
+noise_coef = (linalg.norm(y, 2) / np.exp(snr / 20.)) / linalg.norm(noise, 2)
+y += noise_coef * noise  # add noise
+
+###############################################################################
+# Compute the coefs of a Bayesian Ridge with GridSearch
+cv = KFold(len(y), 2)  # cross-validation generator for model selection
+ridge = BayesianRidge()
+cachedir = tempfile.mkdtemp()
+mem = Memory(cachedir=cachedir, verbose=1)
+
+# Ward agglomeration followed by BayesianRidge
+connectivity = grid_to_graph(n_x=size, n_y=size)
+ward = FeatureAgglomeration(n_clusters=10, connectivity=connectivity,
+                            memory=mem)
+clf = Pipeline([('ward', ward), ('ridge', ridge)])
+# Select the optimal number of parcels with grid search
+clf = GridSearchCV(clf, {'ward__n_clusters': [10, 20, 30]}, n_jobs=1, cv=cv)
+clf.fit(X, y)  # set the best parameters
+coef_ = clf.best_estimator_.steps[-1][1].coef_
+coef_ = clf.best_estimator_.steps[0][1].inverse_transform(coef_)
+coef_agglomeration_ = coef_.reshape(size, size)
+
+# Anova univariate feature selection followed by BayesianRidge
+f_regression = mem.cache(feature_selection.f_regression)  # caching function
+anova = feature_selection.SelectPercentile(f_regression)
+clf = Pipeline([('anova', anova), ('ridge', ridge)])
+# Select the optimal percentage of features with grid search
+clf = GridSearchCV(clf, {'anova__percentile': [5, 10, 20]}, cv=cv)
+clf.fit(X, y)  # set the best parameters
+coef_ = clf.best_estimator_.steps[-1][1].coef_
+coef_ = clf.best_estimator_.steps[0][1].inverse_transform(coef_.reshape(1, -1))
+coef_selection_ = coef_.reshape(size, size)
+
+###############################################################################
+# Inverse the transformation to plot the results on an image
+plt.close('all')
+plt.figure(figsize=(7.3, 2.7))
+plt.subplot(1, 3, 1)
+plt.imshow(coef, interpolation="nearest", cmap=plt.cm.RdBu_r)
+plt.title("True weights")
+plt.subplot(1, 3, 2)
+plt.imshow(coef_selection_, interpolation="nearest", cmap=plt.cm.RdBu_r)
+plt.title("Feature Selection")
+plt.subplot(1, 3, 3)
+plt.imshow(coef_agglomeration_, interpolation="nearest", cmap=plt.cm.RdBu_r)
+plt.title("Feature Agglomeration")
+plt.subplots_adjust(0.04, 0.0, 0.98, 0.94, 0.16, 0.26)
+plt.show()
+
+# Attempt to remove the temporary cachedir, but don't worry if it fails
+shutil.rmtree(cachedir, ignore_errors=True)
+
+
+
+
+
+
+==============================================
+Feature agglomeration vs. univariate selection
+==============================================
+
+This example compares 2 dimensionality reduction strategies:
+
+- univariate feature selection with Anova
+
+- feature agglomeration with Ward hierarchical clustering
+
+Both methods are compared in a regression problem using
+a BayesianRidge as supervised estimator.
+
+________________________________________________________________________________
+[Memory] Calling sklearn.cluster.hierarchical.ward_tree...
+ward_tree(array([[-0.451933, ..., -0.675318],
+       ..., 
+       [ 0.275706, ..., -1.085711]]), 
+<1600x1600 sparse matrix of type '<type 'numpy.int32'>'
+	with 7840 stored elements in COOrdinate format>, n_components=None, n_clusters=None)
+________________________________________________________ward_tree - 0.2s, 0.0min
+________________________________________________________________________________
+[Memory] Calling sklearn.cluster.hierarchical.ward_tree...
+ward_tree(array([[ 0.905206, ...,  0.161245],
+       ..., 
+       [-0.849835, ..., -1.091621]]), 
+<1600x1600 sparse matrix of type '<type 'numpy.int32'>'
+	with 7840 stored elements in COOrdinate format>, n_components=None, n_clusters=None)
+________________________________________________________ward_tree - 0.1s, 0.0min
+________________________________________________________________________________
+[Memory] Calling sklearn.cluster.hierarchical.ward_tree...
+ward_tree(array([[ 0.905206, ..., -0.675318],
+       ..., 
+       [-0.849835, ..., -1.085711]]), 
+<1600x1600 sparse matrix of type '<type 'numpy.int32'>'
+	with 7840 stored elements in COOrdinate format>, n_components=None, n_clusters=None)
+________________________________________________________ward_tree - 0.3s, 0.0min
+________________________________________________________________________________
+[Memory] Calling sklearn.feature_selection.univariate_selection.f_regression...
+f_regression(array([[-0.451933, ...,  0.275706],
+       ..., 
+       [-0.675318, ..., -1.085711]]), 
+array([ 25.267703, ..., -25.026711]))
+_____________________________________________________f_regression - 0.0s, 0.0min
+________________________________________________________________________________
+[Memory] Calling sklearn.feature_selection.univariate_selection.f_regression...
+f_regression(array([[ 0.905206, ..., -0.849835],
+       ..., 
+       [ 0.161245, ..., -1.091621]]), 
+array([ -27.447268, ..., -112.638768]))
+_____________________________________________________f_regression - 0.0s, 0.0min
+________________________________________________________________________________
+[Memory] Calling sklearn.feature_selection.univariate_selection.f_regression...
+f_regression(array([[ 0.905206, ..., -0.849835],
+       ..., 
+       [-0.675318, ..., -1.085711]]), 
+array([-27.447268, ..., -25.026711]))
+_____________________________________________________f_regression - 0.0s, 0.0min
+
+
+
+
+ 
+
+
+
+In [42]:
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import svm, datasets, feature_selection, cross_validation
+from sklearn.pipeline import Pipeline
+
+###############################################################################
+# Create a feature-selection transform and an instance of SVM that we
+# combine together to have an full-blown estimator
+
+transform = feature_selection.SelectPercentile(feature_selection.chi2)
+
+clf = Pipeline([('anova', transform), ('rf',rf)])
+
+###############################################################################
+# Plot the cross-validation score as a function of percentile of features
+score_means = list()
+score_stds = list()
+percentiles = (1, 3, 6, 10, 15, 20, 30, 40, 60, 80, 100)
+
+for percentile in percentiles:
+    clf.set_params(anova__percentile=percentile)
+    # Compute cross-validation score using all CPUs
+    this_scores = cross_validation.cross_val_score(clf, x, y, n_jobs=1)
+    score_means.append(this_scores.mean())
+    score_stds.append(this_scores.std())
+
+plt.errorbar(percentiles, score_means, np.array(score_stds))
+
+plt.title(
+    'Performance of the SVM-Anova varying the percentile of features selected')
+plt.xlabel('Percentile')
+plt.ylabel('Prediction rate')
+
+plt.axis('tight')
+plt.show()
+
+
+
+
+
+
+ 
+
+
+
+In [ ]:
+
+
+
+ 
+
