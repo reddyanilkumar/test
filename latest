@@ -1,0 +1,568 @@
+
+
+
+
+In [1]:
+
+
+
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+import warnings
+warnings.filterwarnings('ignore')
+
+%matplotlib inline
+
+
+
+
+In [5]:
+
+
+
+train = pd.read_csv('train.csv', index_col='id', encoding="ISO-8859-1")
+test = pd.read_csv('test.csv', index_col='id', encoding="ISO-8859-1")
+
+products_description = pd.read_csv('product_descriptions.csv', encoding="ISO-8859-1")
+
+
+
+
+In [6]:
+
+
+
+# merge with product description
+
+train = pd.merge(train, products_description, how='left', on='product_uid')
+test = pd.merge(test, products_description, how='left', on='product_uid')
+
+
+
+
+In [7]:
+
+
+
+# load product attributes
+
+attributes = pd.read_csv('attributes.csv')
+attributes = attributes.fillna('')
+
+
+
+
+In [8]:
+
+
+
+attributes.head()
+
+
+
+
+
+Out[8]:
+
+
+
+
+
+product_uid
+
+name
+
+value
+
+
+
+0
+100001 Bullet01 Versatile connector for various 90° connection... 
+
+1
+100001 Bullet02 Stronger than angled nailing or screw fastenin... 
+
+2
+100001 Bullet03 Help ensure joints are consistently straight a... 
+
+3
+100001 Bullet04 Dimensions: 3 in. x 3 in. x 1-1/2 in. 
+
+4
+100001 Bullet05 Made from 12-Gauge steel 
+
+
+
+In [9]:
+
+
+
+# merge attributes
+def merge_attributes(attributes):
+    return ' '.join(attributes)
+
+attributes_grouped_by_uid = attributes.groupby('product_uid')['value'].apply(merge_attributes)
+
+
+
+
+In [10]:
+
+
+
+attributes_grouped_by_uid.head()
+
+
+
+
+
+Out[10]:
+
+product_uid
+100001    Versatile connector for various 90° connection...
+100002    Brush,Roller,Spray 6.63 in 7.76 in 6.63 in Rev...
+100003    Yes Slightly narrower for tighter spaces Desig...
+100004    8.56 Positive power tolerance (0 to +5-Watt) A...
+100005    Combo Tub and Shower No Includes the trim kit ...
+Name: value, dtype: object
+
+
+
+In [11]:
+
+
+
+attributes_df = pd.DataFrame(attributes_grouped_by_uid)
+attributes_df['product_uid'] = attributes_df.index
+
+
+
+
+In [12]:
+
+
+
+train_with_attributes = pd.merge(train, attributes_df, how='left', on='product_uid')
+test_with_attributes = pd.merge(test, attributes_df, how='left', on='product_uid')
+
+
+
+
+In [13]:
+
+
+
+train_with_attributes = train_with_attributes.fillna('')
+test_with_attributes = test_with_attributes.fillna('')
+
+
+
+
+In [14]:
+
+
+
+train.head()
+
+
+
+
+
+Out[14]:
+
+
+
+
+
+product_uid
+
+product_title
+
+search_term
+
+relevance
+
+product_description
+
+
+
+0
+100001 Simpson Strong-Tie 12-Gauge Angle angle bracket 3.00 Not only do angles make joints stronger, they ... 
+
+1
+100001 Simpson Strong-Tie 12-Gauge Angle l bracket 2.50 Not only do angles make joints stronger, they ... 
+
+2
+100002 BEHR Premium Textured DeckOver 1-gal. #SC-141 ... deck over 3.00 BEHR Premium Textured DECKOVER is an innovativ... 
+
+3
+100005 Delta Vero 1-Handle Shower Only Faucet Trim Ki... rain shower head 2.33 Update your bathroom with the Delta Vero Singl... 
+
+4
+100005 Delta Vero 1-Handle Shower Only Faucet Trim Ki... shower only faucet 2.67 Update your bathroom with the Delta Vero Singl... 
+
+
+
+In [15]:
+
+
+
+y = train.relevance
+
+
+
+
+In [16]:
+
+
+
+from sklearn.cross_validation import train_test_split
+
+
+
+
+In [17]:
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(train, y, test_size=0.3, random_state=44)
+
+
+
+
+In [18]:
+
+
+
+print X_train.shape, X_test.shape, y_train.shape, y_test.shape
+
+
+
+
+
+
+(51846, 5) (22221, 5) (51846,) (22221,)
+
+
+
+
+In [19]:
+
+
+
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import PassiveAggressiveRegressor, SGDRegressor
+from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
+
+from sklearn.preprocessing import MinMaxScaler
+
+#import xgboost as xgb
+
+
+
+
+In [20]:
+
+
+
+from sklearn.base import BaseEstimator
+from sklearn.feature_extraction import stop_words
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.feature_selection import SelectKBest, f_regression
+
+
+import nltk
+
+import pandas as pd
+import numpy as np
+
+import re
+
+class FeatureTransformer(BaseEstimator):
+	"""
+	Generate features
+	"""
+
+	def __init__(self):
+		self.stopwords = stop_words.ENGLISH_STOP_WORDS
+		self.stemmer = nltk.stem.SnowballStemmer('english')
+
+	def get_feature_names(self):
+		feature_names = []
+
+		feature_names.extend(self.truncated_svd.get_feature_names())
+		return np.array(feature_names)
+
+	def fit(self, X, y=None):
+		self.fit_transform(X, y)
+
+		return self
+
+	def fit_transform(self, X, y=None):
+		
+		X['search_term'] = X['search_term'].map(self._remove_stopwords)
+		X['search_term'] = X['search_term'].map(self._stem_words)
+		X['search_term'] = X['search_term'].map(self._preprocess)
+
+		X['product_title'] = X['product_title'].map(self._remove_stopwords)
+		X['product_title'] = X['product_title'].map(self._stem_words)
+		X['product_title'] = X['product_title'].map(self._preprocess)
+
+		num_sentences = X['product_description'].map(self._num_sentences).reshape(-1, 1)
+
+		X['product_description'] = X['product_description'].map(self._remove_stopwords)
+		X['product_description'] = X['product_description'].map(self._add_periods)
+		X['product_description'] = X['product_description'].map(self._stem_words)
+		X['product_description'] = X['product_description'].map(self._preprocess)
+
+
+		# corpus = X.apply(lambda x: '%s %s %s' %(x['search_term'], x['product_title'], x['product_description']), axis=1)
+		# self.count_vect = CountVectorizer(analyzer='word', min_df=2)
+		# bow = self.count_vect.fit_transform(corpus)
+
+		
+		is_query_in_title = X.apply(lambda x: self._contains_query_term(x['search_term'], x['product_title']), axis=1).reshape(-1, 1)
+		is_query_in_description = X.apply(lambda x: self._contains_query_term(x['search_term'], x['product_description']), axis=1).reshape(-1, 1)
+		query_length = self._get_query_length(X['search_term'])
+		
+		# self.selector = SelectKBest(f_regression, k=10)
+		# reduced_features = self.selector.fit_transform(bow.todense(), X['relevance'])
+
+		
+		features = []
+		# features.append(reduced_features)
+		features.append(is_query_in_title)
+		features.append(is_query_in_description)
+		features.append(query_length)
+		features.append(num_sentences)
+
+		features = np.hstack(features)
+
+		return features
+
+	def _stem_words(self, sentence):
+		return ' '.join([self.stemmer.stem(words) for words in sentence.split()])
+	
+	def _remove_stopwords(self, sentence):
+		return ' '.join([re.sub(r'[^\w\s\d]','',word.lower()) for word in sentence.split() if word not in self.stopwords])
+
+	def _preprocess(self, sentence):
+		sentence = sentence.replace('x', ' times ')
+		sentence = sentence.replace("'", ' inches ')
+		sentence = sentence.replace('in.', ' inches ')
+		sentence = sentence.replace('ft', ' feet ')
+		sentence = sentence.replace('mm', ' milimeters ')
+		sentence = sentence.replace('btu', 'british thermal unit ')
+		sentence = sentence.replace('cc', ' cubic centimeters ')
+		sentence = sentence.replace('cfm', ' cubic feet per minute ')
+		sentence = sentence.replace('ga', ' gallons ')
+		sentence = sentence.replace('lbs', ' pounds ')
+		sentence = sentence.replace('*', ' times ')
+
+		return sentence
+
+
+
+	def _get_query_length(self, search_terms):
+		query_length = search_terms.map(lambda x: len(x.split(' ')))
+
+		return np.array([query_length]).T
+
+	def _contains_query_term(self, needle, haystack):
+		return sum(int(haystack.find(word)>=0) for word in needle.split())
+
+	def _num_sentences(self, text):
+		return len(text.split('.'))
+
+	def _add_periods(self, sentence):
+		def transform(matchobj):
+			matched_group = matchobj.group(0)
+			uppercase_index = re.search(r'[A-Z]', matched_group).start()
+			return matched_group[:uppercase_index] + '. ' + matched_group[uppercase_index:]
+		
+		return re.sub(r'[a-z]+[A-Z][a-z]+', transform, sentence)
+
+	
+		
+	def transform(self, X):
+		X['search_term'] = X['search_term'].map(self._remove_stopwords)
+		X['search_term'] = X['search_term'].map(self._stem_words)
+		X['search_term'] = X['search_term'].map(self._preprocess)
+
+
+		X['product_title'] = X['product_title'].map(self._remove_stopwords)
+		X['product_title'] = X['product_title'].map(self._stem_words)
+		X['product_title'] = X['product_title'].map(self._preprocess)
+		
+		num_sentences = X['product_description'].map(self._num_sentences).reshape(-1, 1)
+
+		X['product_description'] = X['product_description'].map(self._remove_stopwords)
+		X['product_description'] = X['product_description'].map(self._add_periods)
+		X['product_description'] = X['product_description'].map(self._stem_words)
+		X['product_description'] = X['product_description'].map(self._preprocess)
+
+
+		# corpus = X.apply(lambda x: '%s %s %s' %(x['search_term'], x['product_title'], x['product_description']), axis=1)
+		# bow = self.count_vect.transform(corpus)
+		
+
+		is_query_in_title = X.apply(lambda x: self._contains_query_term(x['search_term'], x['product_title']), axis=1).reshape(-1, 1)
+		is_query_in_description = X.apply(lambda x: self._contains_query_term(x['search_term'], x['product_description']), axis=1).reshape(-1, 1)
+		query_length = self._get_query_length(X['search_term'])
+		
+
+		# reduced_features = self.selector.transform(bow.todense())
+
+		features = []
+		# features.append(reduced_features)
+		features.append(is_query_in_title)
+		features.append(is_query_in_description)
+		features.append(query_length)
+		features.append(num_sentences)
+
+		features = np.hstack(features)
+		
+		return features
+	
+
+
+
+
+In [35]:
+
+
+
+ft = FeatureTransformer()
+# scaler = MinMaxScaler()
+#est = PassiveAggressiveRegressor(C=0.01)
+#est = SGDRegressor(penalty='l1')
+rf = RandomForestRegressor(n_estimators=25, random_state=0)
+est = BaggingRegressor(rf, n_estimators=45, max_samples=0.1, random_state=25)
+#est = xgb.XGBRegressor()
+
+online_model_pipe = Pipeline([('ft', ft), ('est', est)])
+
+online_model_pipe.fit(X_train[:5000], y_train[:5000])
+
+
+
+
+
+Out[35]:
+
+Pipeline(steps=[('ft', FeatureTransformer()), ('est', BaggingRegressor(base_estimator=RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
+           max_features='auto', max_leaf_nodes=None, min_samples_leaf=1,
+           min_samples_split=2, min_weight_fraction_leaf=0.0,
+           n_esti... max_samples=0.1, n_estimators=45, n_jobs=1, oob_score=False,
+         random_state=25, verbose=0))])
+
+
+
+In [23]:
+
+
+
+from sklearn.metrics import mean_squared_error
+
+
+
+
+In [36]:
+
+
+
+predsTrain = online_model_pipe.predict(X_train[:5000])
+predsTest = online_model_pipe.predict(X_test[:5000])
+
+
+
+
+In [26]:
+
+
+
+print "Random forests"
+print 'RMSE on the training set %f ' %(np.sqrt(mean_squared_error(y_train[:5000], predsTrain)))
+print 'RMSE on the test set %f ' %(np.sqrt(mean_squared_error(y_test[:5000], predsTest)))
+
+
+
+
+
+
+Random forests
+RMSE on the training set 0.535835 
+RMSE on the test set 0.525466 
+
+
+
+
+In [30]:
+
+
+
+print "PassiveAggressiveRegressor"
+print 'RMSE on the training set %f ' %(np.sqrt(mean_squared_error(y_train[:5000], predsTrain)))
+print 'RMSE on the test set %f ' %(np.sqrt(mean_squared_error(y_test[:5000], predsTest)))
+
+
+
+
+
+
+PassiveAggressiveRegressor
+RMSE on the training set 0.521689 
+RMSE on the test set 0.509915 
+
+
+
+
+In [33]:
+
+
+
+print "SGD"
+print 'RMSE on the training set %f ' %(np.sqrt(mean_squared_error(y_train[:5000], predsTrain)))
+print 'RMSE on the test set %f ' %(np.sqrt(mean_squared_error(y_test[:5000], predsTest)))
+
+
+
+
+
+
+SGD
+RMSE on the training set 0.515863 
+RMSE on the test set 0.504924 
+
+
+
+
+In [37]:
+
+
+
+print "Bagging"
+print 'RMSE on the training set %f ' %(np.sqrt(mean_squared_error(y_train[:5000], predsTrain)))
+print 'RMSE on the test set %f ' %(np.sqrt(mean_squared_error(y_test[:5000], predsTest)))
+
+
+
+
+
+
+Bagging
+RMSE on the training set 0.484720 
+RMSE on the test set 0.484948 
+
+
+
+
+In [ ]:
+
+
+
+ 
+
