@@ -1,305 +1,206 @@
 
-In [4]:
+In [1]:
 
-import sys
-import cPickle
-import numpy as np
 import pandas as pd
-from nlp_utils import clean_text, pos_tag_text
-sys.path.append("../")
-#from param_config import config
+import numpy as np
 
-In [5]:
+import matplotlib.pyplot as plt
 
-print("Load data...")
+import warnings
+warnings.filterwarnings('ignore')
 
-dfTrain = pd.read_csv("train.csv").fillna("")
-dfTest = pd.read_csv("test.csv").fillna("")
-# number of train/test samples
-num_train, num_test = dfTrain.shape[0], dfTest.shape[0]
+%matplotlib inline
 
-print("Done.")
+In [2]:
 
-Load data...
-Done.
+import random
+random.seed(2016)
 
-In [6]:
+In [3]:
 
-print("Pre-process data...")
-
-## insert fake label for test
-dfTest["median_relevance"] = np.ones((num_test))
-dfTest["relevance_variance"] = np.zeros((num_test))
-
-Pre-process data...
+df_train = pd.read_csv('train.csv')
+#test = pd.read_csv('test.csv')
+df_internship = pd.read_csv('Internship.csv')
+df_student = pd.read_csv('Student.csv')
 
 In [7]:
 
-## insert sample index
-dfTrain["index"] = np.arange(num_train)
-dfTest["index"] = np.arange(num_test)
+df_train.count()
+
+Out[7]:
+
+Internship_ID          192582
+Student_ID             192582
+Earliest_Start_Date    192582
+Expected_Stipend       192582
+Minimum_Duration       192582
+Preferred_location      61891
+Is_Part_Time           192582
+Is_Shortlisted         192582
+dtype: int64
 
 In [8]:
 
-## one-hot encode the median_relevance
-for i in range(4):
-    dfTrain["median_relevance_%d" % (i+1)] = 0
-    dfTrain["median_relevance_%d" % (i+1)][dfTrain["median_relevance"]==(i+1)] = 1
+df_internship.count()
 
-/home/anil/anaconda/lib/python2.7/site-packages/IPython/kernel/__main__.py:4: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame
+Out[8]:
 
-See the the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+Internship_ID                     6899
+Internship_Profile                6899
+Skills_required                    952
+Internship_Type                   6899
+Internship_Location               6899
+Internship_category               6899
+No_of_openings                    6899
+Stipend_Type                      6899
+Stipend1                          6771
+Stipend2                          3151
+Internship_deadline               6899
+Start_Date                        6899
+Internship_Duration(Months)       6899
+PR                                6899
+UI                                6899
+Marketing                         6899
+Media                             6899
+Social                            6899
+Design                            6899
+Web                               6899
+Development                       6899
+Business                          6899
+Research                          6899
+Writing                           6899
+Plan                              6899
+Creative                          6899
+Process                           6899
+Database                          6899
+Strategy                          6899
+Designing                         6899
+                                  ... 
+Scalability                       6899
+Assembly                          6899
+Conceptualization                 6899
+Microsoft                         6899
+MVC Framework                     6899
+PSD                               6899
+Web Technologies                  6899
+Web Application Development       6899
+Joomla                            6899
+Image Processing                  6899
+REST APIs                         6899
+Data Structure                    6899
+Confidence                        6899
+Electrical                        6899
+Counseling                        6899
+Inside Sales                      6899
+Organizational Skills             6899
+Video Editing                     6899
+Data Structures                   6899
+Mobile Application Development    6899
+PhoneGap                          6899
+Storytelling                      6899
+MySQL.                            6899
+Ionic                             6899
+Design Skills                     6899
+Corporate Sales                   6899
+Entrepreneurship                  6899
+Films                             6899
+Foundation                        6899
+Payment Gateway                   6899
+dtype: int64
 
 In [9]:
 
-dfTrain.head()
+df_student.count()
 
 Out[9]:
-	id 	query 	product_title 	product_description 	median_relevance 	relevance_variance 	index 	median_relevance_1 	median_relevance_2 	median_relevance_3 	median_relevance_4
-0 	1 	bridal shower decorations 	Accent Pillow with Heart Design - Red/Black 	Red satin accent pillow embroidered with a hea... 	1 	0.000 	0 	1 	0 	0 	0
-1 	2 	led christmas lights 	Set of 10 Battery Operated Multi LED Train Chr... 	Set of 10 Battery Operated Train Christmas Lig... 	4 	0.000 	1 	0 	0 	0 	1
-2 	4 	projector 	ViewSonic Pro8200 DLP Multimedia Projector 		4 	0.471 	2 	0 	0 	0 	1
-3 	5 	wine rack 	Concept Housewares WR-44526 Solid-Wood Ceiling... 	Like a silent and sturdy tree, the Southern En... 	4 	0.000 	3 	0 	0 	0 	1
-4 	7 	light bulb 	Wintergreen Lighting Christmas LED Light Bulb ... 	WTGR1011\nFeatures\nNickel base, 60,000 averag... 	2 	0.471 	4 	0 	1 	0 	0
-In [10]:
 
-## query ids
-qid_dict = dict()
-for i,q in enumerate(np.unique(dfTrain["query"]), start=1):
-    qid_dict[q] = i
+Student_ID            151191
+Institute_Category    151191
+Institute_location    151191
+hometown              151191
+Degree                151184
+Stream                151140
+Current_year          151191
+Year_of_graduation    151191
+Performance_PG        151191
+PG_scale              151191
+Performance_UG        151191
+UG_Scale              151191
+Performance_12th      151191
+Performance_10th      151191
+Experience_Type       120312
+Profile                30947
+Location              151182
+Start Date            120312
+End Date               65962
+dtype: int64
 
-In [11]:
+In [4]:
 
-## insert query id
-dfTrain["qid"] = map(lambda q: qid_dict[q], dfTrain["query"])
-dfTest["qid"] = map(lambda q: qid_dict[q], dfTest["query"])
+merged_inner = pd.merge(df_student,df_train,on='Student_ID')
 
-In [12]:
+In [17]:
 
-## clean text
-clean = lambda line: clean_text(line, drop_html_flag=False)
-dfTrain = dfTrain.apply(clean, axis=1)
-dfTest = dfTest.apply(clean, axis=1)
-
-print("Done.")
-
-Done.
-
-In [13]:
-
-dfTrain.head()
-
-Out[13]:
-	id 	query 	product_title 	product_description 	median_relevance 	relevance_variance 	index 	median_relevance_1 	median_relevance_2 	median_relevance_3 	median_relevance_4 	qid
-0 	1 	bridal shower decorations 	accent pillow with heart design - red/black 	red satin accent pillow embroidered with a hea... 	1 	0.000 	0 	1 	0 	0 	0 	31
-1 	2 	led christmas lights 	set of 10 battery operated multi led train chr... 	set of 10 battery operated train christmas lig... 	4 	0.000 	1 	0 	0 	0 	1 	122
-2 	4 	projector 	viewsonic pro8200 dlp multimedia projector 		4 	0.471 	2 	0 	0 	0 	1 	171
-3 	5 	wine rack 	concept housewares wr-44526 solid-wood ceiling... 	like a silent and sturdy tree, the southern en... 	4 	0.000 	3 	0 	0 	0 	1 	250
-4 	7 	light bulb 	wintergreen lighting christmas led light bulb ... 	wtgr1011\nfeatures\nnickel base, 60,000 averag... 	2 	0.471 	4 	0 	1 	0 	0 	128
-In [14]:
-
-from sklearn.cross_validation import StratifiedKFold
+merged_inner1 = pd.merge(left=merged_inner,right=df_internship,left_on='Internship_ID', right_on='Internship_ID')
 
 In [18]:
 
-n_runs = 3
-skf = [0]*n_runs
-for stratified_label,key in zip(["relevance", "query"], ["median_relevance", "qid"]):
-    for run in range(n_runs):
-        random_seed = 2015 + 1000 * (run+1)
-        skf[run] = StratifiedKFold(dfTrain[key], n_folds=3,
-                                   shuffle=True, random_state=random_seed)
-        for fold, (validInd, trainInd) in enumerate(skf[run]):
-            print("================================")
-            print("Index for run: %s, fold: %s" % (run+1, fold+1))
-            print("Train (num = %s)" % len(trainInd))
-            print(trainInd[:10])
-            print("Valid (num = %s)" % len(validInd))
-            print(validInd[:10])
+# Get basic information and print it.
+n_samples = merged_inner1.shape[0]
+n_features = merged_inner1.shape[1]
+print "Number of training samples: {}".format(n_samples)
+print "Number of features: {}".format(n_features)
 
-================================
-Index for run: 1, fold: 1
-Train (num = 3386)
-[ 3  8 10 11 12 20 21 22 28 33]
-Valid (num = 6772)
-[ 0  1  2  4  5  6  7  9 13 14]
-================================
-Index for run: 1, fold: 2
-Train (num = 3386)
-[ 2  5  6 14 16 17 18 19 23 25]
-Valid (num = 6772)
-[ 0  1  3  4  7  8  9 10 11 12]
-================================
-Index for run: 1, fold: 3
-Train (num = 3386)
-[ 0  1  4  7  9 13 15 24 27 30]
-Valid (num = 6772)
-[ 2  3  5  6  8 10 11 12 14 16]
-================================
-Index for run: 2, fold: 1
-Train (num = 3386)
-[ 0  1  9 11 17 21 27 28 31 34]
-Valid (num = 6772)
-[ 2  3  4  5  6  7  8 10 12 13]
-================================
-Index for run: 2, fold: 2
-Train (num = 3386)
-[ 3  5  6  8 10 14 23 25 26 30]
-Valid (num = 6772)
-[ 0  1  2  4  7  9 11 12 13 15]
-================================
-Index for run: 2, fold: 3
-Train (num = 3386)
-[ 2  4  7 12 13 15 16 18 19 20]
-Valid (num = 6772)
-[ 0  1  3  5  6  8  9 10 11 14]
-================================
-Index for run: 3, fold: 1
-Train (num = 3386)
-[ 1  3  8 10 11 12 13 14 15 19]
-Valid (num = 6772)
-[ 0  2  4  5  6  7  9 16 17 18]
-================================
-Index for run: 3, fold: 2
-Train (num = 3386)
-[ 4  5 16 18 22 24 27 30 32 38]
-Valid (num = 6772)
-[ 0  1  2  3  6  7  8  9 10 11]
-================================
-Index for run: 3, fold: 3
-Train (num = 3386)
-[ 0  2  6  7  9 17 20 28 29 33]
-Valid (num = 6772)
-[ 1  3  4  5  8 10 11 12 13 14]
-================================
-Index for run: 1, fold: 1
-Train (num = 3470)
-[ 0  4  5 12 14 16 18 20 22 29]
-Valid (num = 6688)
-[ 1  2  3  6  7  8  9 10 11 13]
-================================
-Index for run: 1, fold: 2
-Train (num = 3393)
-[ 3  8 13 15 19 24 25 26 27 32]
-Valid (num = 6765)
-[ 0  1  2  4  5  6  7  9 10 11]
-================================
-Index for run: 1, fold: 3
-Train (num = 3295)
-[ 1  2  6  7  9 10 11 17 21 23]
-Valid (num = 6863)
-[ 0  3  4  5  8 12 13 14 15 16]
-================================
-Index for run: 2, fold: 1
-Train (num = 3470)
-[ 2  6  7  9 10 12 14 15 16 17]
-Valid (num = 6688)
-[ 0  1  3  4  5  8 11 13 18 20]
-================================
-Index for run: 2, fold: 2
-Train (num = 3393)
-[ 0 13 18 24 25 38 39 40 42 43]
-Valid (num = 6765)
-[ 1  2  3  4  5  6  7  8  9 10]
-================================
-Index for run: 2, fold: 3
-Train (num = 3295)
-[ 1  3  4  5  8 11 20 22 23 30]
-Valid (num = 6863)
-[ 0  2  6  7  9 10 12 13 14 15]
-================================
-Index for run: 3, fold: 1
-Train (num = 3470)
-[ 0  3  7  8  9 13 16 20 26 27]
-Valid (num = 6688)
-[ 1  2  4  5  6 10 11 12 14 15]
-================================
-Index for run: 3, fold: 2
-Train (num = 3393)
-[ 2  6 11 12 14 19 21 22 24 28]
-Valid (num = 6765)
-[ 0  1  3  4  5  7  8  9 10 13]
-================================
-Index for run: 3, fold: 3
-Train (num = 3295)
-[ 1  4  5 10 15 17 18 23 25 31]
-Valid (num = 6863)
-[ 0  2  3  6  7  8  9 11 12 13]
+Number of training samples: 504655
+Number of features: 311
 
-In [30]:
+In [34]:
 
-from sklearn.preprocessing import LabelBinarizer
-import os
-print("==================================================")
-print("Generate id features...")
-id_names = [ "qid" ]
-print("For cross-validation...")
-for run in range(n_runs):
-    ## use 33% for training and 67 % for validation
-    ## so we switch trainInd and validInd
-    for fold, (validInd, trainInd) in enumerate(skf[run]):
-        print("Run: %d, Fold: %d" % (run+1, fold+1))
-        path = "%s/Run%d/Fold%d" % ("/home/anil/Anil/kaggle/crowd-flower/test", run+1, fold+1)
+perc_mvs_per_col = (merged_inner1.isnull().sum() / n_samples) * 100
+print perc_mvs_per_col[perc_mvs_per_col > 0]
 
-            #################
-            ## get id feat ##
-            #################
-        for id_name in id_names:
-            lb = LabelBinarizer(sparse_output=True)
-            X_train = lb.fit_transform(dfTrain.iloc[trainInd][id_name])
-            X_valid = lb.transform(dfTrain.iloc[validInd][id_name])
-            with open("%s/train.%s.feat.pkl" % (path, id_name),"wb") as f:
-                cPickle.dump(X_train, f, -1)
-            with open("%s/valid.%s.feat.pkl" % (path, id_name),"wb") as f:
-                cPickle.dump(X_valid, f, -1)
-                    
-print("Done.")
+Series([], dtype: float64)
 
-==================================================
-Generate id features...
-For cross-validation...
-Run: 1, Fold: 1
-a+
-Run: 1, Fold: 2
-a+
-Run: 1, Fold: 3
-a+
-Run: 2, Fold: 1
-a+
-Run: 2, Fold: 2
-a+
-Run: 2, Fold: 3
-a+
-Run: 3, Fold: 1
-a+
-Run: 3, Fold: 2
-a+
-Run: 3, Fold: 3
-a+
-Done.
+In [24]:
+
+merged_inner1.drop(['Profile','Start Date','End Date','Preferred_location','Skills_required','Stipend2'], axis=1, inplace=True)
 
 In [33]:
 
-print("For training and testing...")
-path = "%s/All" % ("/home/anil/Anil/kaggle/crowd-flower/test")
-    ## use full version for X_train                
-for id_name in id_names:
-    X_train = lb.fit_transform(dfTrain[id_name])
-    X_test = lb.transform(dfTest[id_name])
-    with open("%s/train.%s.feat.pkl" % (path, id_name), "wb") as f:
-        cPickle.dump(X_train, f, -1)
-    with open("%s/test.%s.feat.pkl" % (path, id_name), "wb") as f:
-        cPickle.dump(X_test, f, -1)
-print("Done.")
-    
-print("All Done.")
+merged_inner1 = merged_inner1.fillna(-1)
 
-For training and testing...
-Done.
-All Done.
+In [39]:
+
+Con_df = merged_inner1.select_dtypes(exclude= ['object'])
+
+In [40]:
+
+del df_train
+del df_internship
+del df_student
+
+In [37]:
+
+Cat_df.head()
+
+Out[37]:
+	Student_ID 	Year_of_graduation 	Performance_PG 	PG_scale 	Performance_UG 	UG_Scale 	Performance_12th 	Performance_10th 	Internship_ID 	Minimum_Duration 	... 	PhoneGap 	Storytelling 	MySQL. 	Ionic 	Design Skills 	Corporate Sales 	Entrepreneurship 	Films 	Foundation 	Payment Gateway
+0 	7654321 	2012 	8.5 	10 	8.60 	10 	86.2 	91.60 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+1 	7654321 	2012 	8.5 	10 	8.60 	10 	86.2 	91.60 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+2 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+3 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+4 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+
+5 rows × 288 columns
+In [38]:
+
+len(Cat_df.columns)
+
+Out[38]:
+
+288
 
 In [ ]:
 
- 
+merged_inner1.select_dtypes(exclude= ['object'])
 
