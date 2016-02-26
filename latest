@@ -1,5 +1,10 @@
 
+
+
+
 In [1]:
+
+
 
 import pandas as pd
 import numpy as np
@@ -11,196 +16,385 @@ warnings.filterwarnings('ignore')
 
 %matplotlib inline
 
+
+
+
 In [2]:
+
+
 
 import random
 random.seed(2016)
 
+
+
+
 In [3]:
+
+
 
 df_train = pd.read_csv('train.csv')
 #test = pd.read_csv('test.csv')
 df_internship = pd.read_csv('Internship.csv')
 df_student = pd.read_csv('Student.csv')
 
-In [7]:
 
-df_train.count()
 
-Out[7]:
 
-Internship_ID          192582
-Student_ID             192582
-Earliest_Start_Date    192582
-Expected_Stipend       192582
-Minimum_Duration       192582
-Preferred_location      61891
-Is_Part_Time           192582
-Is_Shortlisted         192582
-dtype: int64
+In [28]:
 
-In [8]:
 
-df_internship.count()
-
-Out[8]:
-
-Internship_ID                     6899
-Internship_Profile                6899
-Skills_required                    952
-Internship_Type                   6899
-Internship_Location               6899
-Internship_category               6899
-No_of_openings                    6899
-Stipend_Type                      6899
-Stipend1                          6771
-Stipend2                          3151
-Internship_deadline               6899
-Start_Date                        6899
-Internship_Duration(Months)       6899
-PR                                6899
-UI                                6899
-Marketing                         6899
-Media                             6899
-Social                            6899
-Design                            6899
-Web                               6899
-Development                       6899
-Business                          6899
-Research                          6899
-Writing                           6899
-Plan                              6899
-Creative                          6899
-Process                           6899
-Database                          6899
-Strategy                          6899
-Designing                         6899
-                                  ... 
-Scalability                       6899
-Assembly                          6899
-Conceptualization                 6899
-Microsoft                         6899
-MVC Framework                     6899
-PSD                               6899
-Web Technologies                  6899
-Web Application Development       6899
-Joomla                            6899
-Image Processing                  6899
-REST APIs                         6899
-Data Structure                    6899
-Confidence                        6899
-Electrical                        6899
-Counseling                        6899
-Inside Sales                      6899
-Organizational Skills             6899
-Video Editing                     6899
-Data Structures                   6899
-Mobile Application Development    6899
-PhoneGap                          6899
-Storytelling                      6899
-MySQL.                            6899
-Ionic                             6899
-Design Skills                     6899
-Corporate Sales                   6899
-Entrepreneurship                  6899
-Films                             6899
-Foundation                        6899
-Payment Gateway                   6899
-dtype: int64
-
-In [9]:
-
-df_student.count()
-
-Out[9]:
-
-Student_ID            151191
-Institute_Category    151191
-Institute_location    151191
-hometown              151191
-Degree                151184
-Stream                151140
-Current_year          151191
-Year_of_graduation    151191
-Performance_PG        151191
-PG_scale              151191
-Performance_UG        151191
-UG_Scale              151191
-Performance_12th      151191
-Performance_10th      151191
-Experience_Type       120312
-Profile                30947
-Location              151182
-Start Date            120312
-End Date               65962
-dtype: int64
-
-In [4]:
-
-merged_inner = pd.merge(df_student,df_train,on='Student_ID')
-
-In [17]:
-
-merged_inner1 = pd.merge(left=merged_inner,right=df_internship,left_on='Internship_ID', right_on='Internship_ID')
-
-In [18]:
 
 # Get basic information and print it.
-n_samples = merged_inner1.shape[0]
-n_features = merged_inner1.shape[1]
+n_samples = df_train.shape[0]
+n_features = df_train.shape[1]
 print "Number of training samples: {}".format(n_samples)
 print "Number of features: {}".format(n_features)
 
-Number of training samples: 504655
-Number of features: 311
 
-In [34]:
 
-perc_mvs_per_col = (merged_inner1.isnull().sum() / n_samples) * 100
+
+
+
+Number of training samples: 192582
+Number of features: 7
+
+
+
+
+In [29]:
+
+
+
+perc_mvs_per_col = (df_train.isnull().sum() / n_samples) * 100
 print perc_mvs_per_col[perc_mvs_per_col > 0]
+
+
+
+
+
 
 Series([], dtype: float64)
 
-In [24]:
 
-merged_inner1.drop(['Profile','Start Date','End Date','Preferred_location','Skills_required','Stipend2'], axis=1, inplace=True)
+
+
+In [27]:
+
+
+
+df_train.drop(['Preferred_location'],axis=1,inplace=True)
+
+
+
+
+In [30]:
+
+
+
+df_train[df_train.isnull().any(axis=1)].isnull().any()
+
+
+
+
+
+Out[30]:
+
+Internship_ID          False
+Student_ID             False
+Earliest_Start_Date    False
+Expected_Stipend       False
+Minimum_Duration       False
+Is_Part_Time           False
+Is_Shortlisted         False
+dtype: bool
+
+
+
+In [42]:
+
+
+
+columns = ['Expected_Stipend','Minimum_Duration','Is_Part_Time']
+
+
+
+
+In [32]:
+
+
+
+df_train.head()
+
+
+
+
+
+Out[32]:
+
+
+
+
+
+Internship_ID
+
+Student_ID
+
+Earliest_Start_Date
+
+Expected_Stipend
+
+Minimum_Duration
+
+Is_Part_Time
+
+Is_Shortlisted
+
+
+
+0
+8161 78663553 03-01-2015 2-5K 3 0 0 
+
+1
+4977 7695797 19-12-2014 5-10K 2 1 0 
+
+2
+10271 78663092 06-01-2015 5-10K 6 0 0 
+
+3
+7393 7708503 03-12-2014 2-5K 1 0 0 
+
+4
+11125 78659782 02-01-2015 10K+ 6 1 0 
+
+
 
 In [33]:
 
-merged_inner1 = merged_inner1.fillna(-1)
 
-In [39]:
 
-Con_df = merged_inner1.select_dtypes(exclude= ['object'])
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+
+
+
 
 In [40]:
 
-del df_train
-del df_internship
-del df_student
 
-In [37]:
 
-Cat_df.head()
+le.fit(df_train.Expected_Stipend)
+df_train.Expected_Stipend  = le.transform(df_train.Expected_Stipend)
 
-Out[37]:
-	Student_ID 	Year_of_graduation 	Performance_PG 	PG_scale 	Performance_UG 	UG_Scale 	Performance_12th 	Performance_10th 	Internship_ID 	Minimum_Duration 	... 	PhoneGap 	Storytelling 	MySQL. 	Ionic 	Design Skills 	Corporate Sales 	Entrepreneurship 	Films 	Foundation 	Payment Gateway
-0 	7654321 	2012 	8.5 	10 	8.60 	10 	86.2 	91.60 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
-1 	7654321 	2012 	8.5 	10 	8.60 	10 	86.2 	91.60 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
-2 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
-3 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
-4 	7668697 	2014 	0.0 	10 	9.24 	10 	84.8 	86.28 	8413 	1 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
 
-5 rows × 288 columns
-In [38]:
 
-len(Cat_df.columns)
 
-Out[38]:
+In [44]:
 
-288
+
+
+merged_inner = pd.merge(df_student,df_train,on='Student_ID')
+
+
+
+
+In [49]:
+
+
+
+col = ['Student_ID','Internship_ID','Institute_Category','Degree','Stream','Current_year','Performance_PG','Year_of_graduation','PG_scale','Performance_UG','UG_Scale','Performance_12th','Performance_12th','Experience_Type','Expected_Stipend','Minimum_Duration','Is_Part_Time']
+col1 = ['Institute_Category','Degree','Stream','Current_year','Experience_Type']
+
+
+
+
+In [53]:
+
+
+
+for i in col1:
+    le.fit(merged_inner[i])
+    merged_inner[i]  = le.transform(merged_inner[i])
+
+
+
+
+In [57]:
+
+
+
+X = merged_inner[col]
+
+
+
+
+In [55]:
+
+
+
+y = merged_inner.Is_Shortlisted
+
+
+
+
+In [59]:
+
+
+
+from sklearn.cross_validation import train_test_split
+X_train,X_test,y_train,y_test=train_test_split(X,y)
+
+
+
+
+In [70]:
+
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score, roc_curve, auc
+from sklearn.ensemble import GradientBoostingClassifier
+
+
+
+
+In [72]:
+
+
+
+#rf_initial=RandomForestClassifier(n_estimators=100, bootstrap=True, oob_score=True)
+gbr = GradientBoostingClassifier(n_estimators=100)
+gbr.fit(X_train,y_train)
+
+
+
+
+
+Out[72]:
+
+GradientBoostingClassifier(init=None, learning_rate=0.1, loss='deviance',
+              max_depth=3, max_features=None, max_leaf_nodes=None,
+              min_samples_leaf=1, min_samples_split=2,
+              min_weight_fraction_leaf=0.0, n_estimators=100,
+              random_state=None, subsample=1.0, verbose=0,
+              warm_start=False)
+
+
+
+In [73]:
+
+
+
+preds = gbr.predict(X_test)
+
+
+
+
+In [74]:
+
+
+
+print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_test, preds))
+
+
+
+
+
+
+ROC AUC Score on the validation examples 0.500138 
+
+
+
+
+In [20]:
+
+
+
+# Get basic information and print it.
+n_samples1 = df_internship.shape[0]
+n_features1 = df_internship.shape[1]
+print "Number of training samples: {}".format(n_samples)
+print "Number of features: {}".format(n_features)
+
+
+
+
+
+
+Number of training samples: 151191
+Number of features: 19
+
+
+
+
+In [22]:
+
+
+
+perc_mvs_per_col = (df_internship.isnull().sum() / n_samples1) * 100
+print perc_mvs_per_col[perc_mvs_per_col > 0]
+
+
+
+
+
+
+Skills_required    86.200899
+Stipend1            1.855341
+Stipend2           54.326714
+dtype: float64
+
+
+
+
+In [23]:
+
+
+
+# Get basic information and print it.
+n_samples2 = df_student.shape[0]
+n_features2 = df_student.shape[1]
+print "Number of training samples: {}".format(n_samples)
+print "Number of features: {}".format(n_features)
+
+
+
+
+
+
+Number of training samples: 151191
+Number of features: 19
+
+
+
+
+In [24]:
+
+
+
+perc_mvs_per_col = (df_student.isnull().sum() / n_samples2) * 100
+print perc_mvs_per_col[perc_mvs_per_col > 0]
+
+
+
+
+
+
+Degree              0.004630
+Stream              0.033732
+Experience_Type    20.423835
+Profile            79.531189
+Location            0.005953
+Start Date         20.423835
+End Date           56.371742
+dtype: float64
+
+
+
 
 In [ ]:
 
-merged_inner1.select_dtypes(exclude= ['object'])
+
+
+df_train[df_student.isnull().any(axis=1)].isnull().any()
 
