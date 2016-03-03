@@ -23,8 +23,403 @@ In [2]:
 
 
 
-import random
-random.seed(2016)
+train = pd.read_csv('train.csv')
+test = pd.read_csv('test.csv')
+
+
+
+
+In [69]:
+
+
+
+len(train.ID.unique())
+
+
+
+
+
+Out[69]:
+
+76020
+
+
+
+In [72]:
+
+
+
+for i in train.columns:
+    print len(train[i].unique())
+    if(len(train[i].unique())== 1):
+        print i
+
+
+
+
+
+
+76020
+208
+100
+596
+7551
+9099
+293
+346
+23
+29
+224
+7421
+8961
+331
+454
+8032
+336
+462
+8149
+66
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+2
+3
+3
+8
+5
+5
+2
+2
+3
+2
+6
+4
+7
+3
+3
+7
+7
+2
+2
+7
+5
+4
+11
+9
+2
+2
+2
+2
+4
+3
+9
+9
+9
+9
+19
+5
+30
+35
+51
+22
+68
+96
+50
+22
+71
+99
+2
+2
+11
+9
+11
+9
+5
+5
+4
+3
+2
+2
+13
+21
+22
+22
+9
+3
+2
+9
+2
+8
+7
+3
+2
+285
+11642
+3
+1989
+3059
+730
+229
+3
+859
+345
+111
+3
+176
+2614
+1592
+1524
+3
+16940
+278
+75
+48
+3
+4041
+282
+15730
+129
+5
+2
+2
+27
+7
+9
+17
+2
+3
+2
+3
+2
+3
+2
+5
+6
+6
+4
+9
+2
+3
+2
+3
+2
+3
+2
+5
+3
+3
+425
+182
+20
+42
+16
+6
+4
+184
+33
+85
+33
+2
+20
+2
+2342
+3831
+3
+5
+5
+7
+6
+2
+4
+45
+2
+2
+2
+2
+2
+2
+2
+2
+24
+8
+7
+5
+8
+4
+3
+2
+6
+4
+10
+13
+22
+19
+18
+33
+15
+71
+4
+4
+4
+4
+4
+2
+4
+3
+4
+4
+4
+63
+92
+34
+47
+7
+9
+60
+88
+25
+40
+26
+40
+2
+2
+5
+2
+6
+27
+38
+18
+3
+2
+2
+2
+3
+2
+3
+9
+85
+66
+94
+172
+14486
+7787
+14778
+17330
+1325
+439
+2116
+2173
+2834
+1152
+3405
+3447
+1628
+968
+943
+2576
+295
+264
+233
+511
+3
+3
+3
+88
+18
+119
+119
+5
+2
+4
+4
+43
+24
+48
+48
+99
+33
+141
+141
+57736
+
+
+
+
+In [73]:
+
+
+
+train.shape
+
+
+
+
+
+Out[73]:
+
+(76020, 336)
+
+
+
+In [ ]:
+
+
+
+train.T.drop_duplicates().T
 
 
 
@@ -33,48 +428,77 @@ In [3]:
 
 
 
-df_train = pd.read_csv('train.csv')
-#test = pd.read_csv('test.csv')
-df_internship = pd.read_csv('Internship.csv')
-df_student = pd.read_csv('Student.csv')
+remove = []
+for col in train.columns:
+    if train[col].std() == 0:
+        remove.append(col)
 
-
-
-
-In [28]:
-
-
-
-# Get basic information and print it.
-n_samples = df_train.shape[0]
-n_features = df_train.shape[1]
-print "Number of training samples: {}".format(n_samples)
-print "Number of features: {}".format(n_features)
+train.drop(remove, axis=1, inplace=True)
+print(train.replace(0, np.nan).to_sparse().info())
 
 
 
 
 
 
-Number of training samples: 192582
-Number of features: 7
+<class 'pandas.sparse.frame.SparseDataFrame'>
+Int64Index: 76020 entries, 0 to 76019
+Columns: 337 entries, ID to var38
+dtypes: float64(337)
+memory usage: 20.7 MB
+None
 
 
 
 
-In [29]:
+In [4]:
 
 
 
-perc_mvs_per_col = (df_train.isnull().sum() / n_samples) * 100
-print perc_mvs_per_col[perc_mvs_per_col > 0]
-
+y = train.TARGET
 
 
 
 
+In [5]:
 
-Series([], dtype: float64)
+
+
+train.drop('TARGET',inplace=True,axis=1)
+
+
+
+
+In [6]:
+
+
+
+from sklearn.cross_validation import train_test_split
+
+
+
+
+In [7]:
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(train, y, test_size=0.5, random_state=2016)
+
+
+
+
+In [8]:
+
+
+
+print X_train.shape, X_test.shape, y_train.shape, y_test.shape
+
+
+
+
+
+
+(38010, 336) (38010, 336) (38010,) (38010,)
 
 
 
@@ -83,117 +507,14 @@ In [27]:
 
 
 
-df_train.drop(['Preferred_location'],axis=1,inplace=True)
-
-
-
-
-In [30]:
-
-
-
-df_train[df_train.isnull().any(axis=1)].isnull().any()
-
-
-
-
-
-Out[30]:
-
-Internship_ID          False
-Student_ID             False
-Earliest_Start_Date    False
-Expected_Stipend       False
-Minimum_Duration       False
-Is_Part_Time           False
-Is_Shortlisted         False
-dtype: bool
-
-
-
-In [42]:
-
-
-
-columns = ['Expected_Stipend','Minimum_Duration','Is_Part_Time']
-
-
-
-
-In [32]:
-
-
-
-df_train.head()
-
-
-
-
-
-Out[32]:
-
-
-
-
-
-Internship_ID
-
-Student_ID
-
-Earliest_Start_Date
-
-Expected_Stipend
-
-Minimum_Duration
-
-Is_Part_Time
-
-Is_Shortlisted
-
-
-
-0
-8161 78663553 03-01-2015 2-5K 3 0 0 
-
-1
-4977 7695797 19-12-2014 5-10K 2 1 0 
-
-2
-10271 78663092 06-01-2015 5-10K 6 0 0 
-
-3
-7393 7708503 03-12-2014 2-5K 1 0 0 
-
-4
-11125 78659782 02-01-2015 10K+ 6 1 0 
-
-
-
-In [33]:
-
-
-
-from sklearn import preprocessing
-le = preprocessing.LabelEncoder()
-
-
-
-
-In [40]:
-
-
-
-le.fit(df_train.Expected_Stipend)
-df_train.Expected_Stipend  = le.transform(df_train.Expected_Stipend)
-
-
-
-
-In [44]:
-
-
-
-merged_inner = pd.merge(df_student,df_train,on='Student_ID')
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import PassiveAggressiveRegressor, SGDRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import SelectKBest
+from sklearn.pipeline import FeatureUnion
 
 
 
@@ -202,8 +523,43 @@ In [49]:
 
 
 
-col = ['Student_ID','Internship_ID','Institute_Category','Degree','Stream','Current_year','Performance_PG','Year_of_graduation','PG_scale','Performance_UG','UG_Scale','Performance_12th','Performance_12th','Experience_Type','Expected_Stipend','Minimum_Duration','Is_Part_Time']
-col1 = ['Institute_Category','Degree','Stream','Current_year','Experience_Type']
+pca = PCA(n_components=2)
+
+# Maybe some original features where good, too?
+selection = SelectKBest(k=100)
+
+
+
+
+In [50]:
+
+
+
+combined_features = FeatureUnion([("pca", pca), ("univ_select", selection)])
+
+
+
+
+In [51]:
+
+
+
+X_features = combined_features.fit(X_train, y_train).transform(X_train)
+
+
+
+
+In [52]:
+
+
+
+#select = SelectKBest(chi2, k=50)
+#scaler = StandardScaler()
+
+rf = RandomForestClassifier(n_estimators=400,max_depth=10, random_state=0)
+
+#pipeline = Pipeline([('scaler',scaler),('select', select), ('rf', rf)])
+pipeline = Pipeline([('rf', rf)])
 
 
 
@@ -212,18 +568,27 @@ In [53]:
 
 
 
-for i in col1:
-    le.fit(merged_inner[i])
-    merged_inner[i]  = le.transform(merged_inner[i])
+pipeline.fit(X_features, y_train)
 
 
 
 
-In [57]:
+
+Out[53]:
+
+Pipeline(steps=[('rf', RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=10, max_features='auto', max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=400, n_jobs=1,
+            oob_score=False, random_state=0, verbose=0, warm_start=False))])
 
 
 
-X = merged_inner[col]
+In [54]:
+
+
+
+X_test_features = combined_features.transform(X_test)
 
 
 
@@ -232,37 +597,182 @@ In [55]:
 
 
 
-y = merged_inner.Is_Shortlisted
+predsTrain = rf.predict(X_features)
+predsTest = rf.predict(X_test_features)
 
 
 
 
-In [59]:
+In [17]:
 
 
 
-from sklearn.cross_validation import train_test_split
-X_train,X_test,y_train,y_test=train_test_split(X,y)
-
-
-
-
-In [70]:
-
-
-
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, roc_curve, auc
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, chi2
+
+
+
+
+In [56]:
+
+
+
+print "Random forests"
+print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_train, predsTrain))
+print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_test, predsTest))
+
+
+
+
+
+
+Random forests
+ROC AUC Score on the validation examples 0.511042 
+ROC AUC Score on the validation examples 0.499986 
+
+
+
+
+In [57]:
+
+
+
+# RF feature importance
+#forest = rf.get_params()
+importances = rf.feature_importances_ 
+indices = np.argsort(importances)[::-1] 
+
+for f in range(X_train.shape[1]):
+    print("%2d) %-*s %f" % (f + 1, 30, X_train.columns[f], importances[indices[f]]))
+
+
+
+
+
+
+ 1) ID                             0.167690
+ 2) var3                           0.091842
+ 3) var15                          0.061693
+ 4) imp_ent_var16_ult1             0.043728
+ 5) imp_op_var39_comer_ult1        0.036552
+ 6) imp_op_var39_comer_ult3        0.031619
+ 7) imp_op_var40_comer_ult1        0.030823
+ 8) imp_op_var40_comer_ult3        0.027428
+ 9) imp_op_var40_efect_ult1        0.023032
+10) imp_op_var40_efect_ult3        0.021727
+11) imp_op_var40_ult1              0.019470
+12) imp_op_var41_comer_ult1        0.018709
+13) imp_op_var41_comer_ult3        0.018484
+14) imp_op_var41_efect_ult1        0.018200
+15) imp_op_var41_efect_ult3        0.017689
+16) imp_op_var41_ult1              0.017686
+17) imp_op_var39_efect_ult1        0.017219
+18) imp_op_var39_efect_ult3        0.016992
+19) imp_op_var39_ult1              0.014641
+20) imp_sal_var16_ult1             0.014584
+21) ind_var1_0                     0.014392
+22) ind_var1                       0.014310
+23) ind_var5_0                     0.013454
+24) ind_var5                       0.013053
+25) ind_var6_0                     0.012996
+26) ind_var6                       0.011037
+27) ind_var8_0                     0.010854
+28) ind_var8                       0.010753
+29) ind_var12_0                    0.010375
+30) ind_var12                      0.009865
+31) ind_var13_0                    0.009376
+32) ind_var13_corto_0              0.006921
+33) ind_var13_corto                0.006802
+34) ind_var13_largo_0              0.006017
+35) ind_var13_largo                0.005594
+36) ind_var13_medio_0              0.005538
+37) ind_var13_medio                0.005321
+38) ind_var13                      0.005288
+39) ind_var14_0                    0.005138
+40) ind_var14                      0.004871
+41) ind_var17_0                    0.004849
+42) ind_var17                      0.004760
+43) ind_var18_0                    0.004282
+44) ind_var18                      0.004160
+45) ind_var19                      0.003833
+46) ind_var20_0                    0.003812
+47) ind_var20                      0.003717
+48) ind_var24_0                    0.003591
+49) ind_var24                      0.003397
+50) ind_var25_cte                  0.003105
+51) ind_var26_0                    0.002898
+52) ind_var26_cte                  0.002791
+53) ind_var26                      0.002786
+54) ind_var25_0                    0.002784
+55) ind_var25                      0.002768
+56) ind_var29_0                    0.002619
+57) ind_var29                      0.002594
+58) ind_var30_0                    0.002200
+59) ind_var30                      0.002176
+60) ind_var31_0                    0.002101
+61) ind_var31                      0.002095
+62) ind_var32_cte                  0.001920
+63) ind_var32_0                    0.001822
+64) ind_var32                      0.001808
+65) ind_var33_0                    0.001798
+66) ind_var33                      0.001780
+67) ind_var34_0                    0.001755
+68) ind_var34                      0.001730
+69) ind_var37_cte                  0.001652
+70) ind_var37_0                    0.001596
+71) ind_var37                      0.001578
+72) ind_var39_0                    0.001553
+73) ind_var40_0                    0.001533
+74) ind_var40                      0.001530
+75) ind_var41_0                    0.001456
+76) ind_var39                      0.001386
+77) ind_var44_0                    0.001340
+78) ind_var44                      0.001242
+79) num_var1_0                     0.001113
+80) num_var1                       0.001063
+81) num_var4                       0.001023
+82) num_var5_0                     0.001006
+83) num_var5                       0.000960
+84) num_var6_0                     0.000879
+85) num_var6                       0.000829
+86) num_var8_0                     0.000772
+87) num_var8                       0.000724
+88) num_var12_0                    0.000717
+89) num_var12                      0.000647
+90) num_var13_0                    0.000607
+91) num_var13_corto_0              0.000592
+92) num_var13_corto                0.000554
+93) num_var13_largo_0              0.000417
+94) num_var13_largo                0.000360
+95) num_var13_medio_0              0.000293
+96) num_var13_medio                0.000261
+97) num_var13                      0.000214
+98) num_var14_0                    0.000133
+99) num_var14                      0.000094
+100) num_var17_0                    0.000068
+101) num_var17                      0.000061
+102) num_var18_0                    0.000047
+
+
+
+
+---------------------------------------------------------------------------
+IndexError                                Traceback (most recent call last)
+<ipython-input-57-c27ba68e3078> in <module>()
+      5 
+      6 for f in range(X_train.shape[1]):
+----> 7     print("%2d) %-*s %f" % (f + 1, 30, X_train.columns[f], importances[indices[f]]))
+
+IndexError: index 102 is out of bounds for axis 0 with size 102
+
+
+
+In [17]:
+
+
+
 from sklearn.ensemble import GradientBoostingClassifier
-
-
-
-
-In [72]:
-
-
-
-#rf_initial=RandomForestClassifier(n_estimators=100, bootstrap=True, oob_score=True)
 gbr = GradientBoostingClassifier(n_estimators=100)
 gbr.fit(X_train,y_train)
 
@@ -270,7 +780,7 @@ gbr.fit(X_train,y_train)
 
 
 
-Out[72]:
+Out[17]:
 
 GradientBoostingClassifier(init=None, learning_rate=0.1, loss='deviance',
               max_depth=3, max_features=None, max_leaf_nodes=None,
@@ -281,113 +791,32 @@ GradientBoostingClassifier(init=None, learning_rate=0.1, loss='deviance',
 
 
 
-In [73]:
-
-
-
-preds = gbr.predict(X_test)
-
-
-
-
-In [74]:
-
-
-
-print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_test, preds))
-
-
-
-
-
-
-ROC AUC Score on the validation examples 0.500138 
-
-
-
-
-In [20]:
-
-
-
-# Get basic information and print it.
-n_samples1 = df_internship.shape[0]
-n_features1 = df_internship.shape[1]
-print "Number of training samples: {}".format(n_samples)
-print "Number of features: {}".format(n_features)
-
-
-
-
-
-
-Number of training samples: 151191
-Number of features: 19
-
-
-
-
-In [22]:
-
-
-
-perc_mvs_per_col = (df_internship.isnull().sum() / n_samples1) * 100
-print perc_mvs_per_col[perc_mvs_per_col > 0]
-
-
-
-
-
-
-Skills_required    86.200899
-Stipend1            1.855341
-Stipend2           54.326714
-dtype: float64
-
-
-
-
-In [23]:
-
-
-
-# Get basic information and print it.
-n_samples2 = df_student.shape[0]
-n_features2 = df_student.shape[1]
-print "Number of training samples: {}".format(n_samples)
-print "Number of features: {}".format(n_features)
-
-
-
-
-
-
-Number of training samples: 151191
-Number of features: 19
-
-
-
-
 In [24]:
 
 
 
-perc_mvs_per_col = (df_student.isnull().sum() / n_samples2) * 100
-print perc_mvs_per_col[perc_mvs_per_col > 0]
+predsTrain = rf.predict(X_train)
+predsTest = rf.predict(X_test)
+
+
+
+
+In [25]:
+
+
+
+print "GBC"
+print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_train, predsTrain))
+print 'ROC AUC Score on the validation examples %f ' %(roc_auc_score(y_test, predsTest))
 
 
 
 
 
 
-Degree              0.004630
-Stream              0.033732
-Experience_Type    20.423835
-Profile            79.531189
-Location            0.005953
-Start Date         20.423835
-End Date           56.371742
-dtype: float64
+GBC
+ROC AUC Score on the validation examples 0.553843 
+ROC AUC Score on the validation examples 0.537222 
 
 
 
@@ -396,5 +825,5 @@ In [ ]:
 
 
 
-df_train[df_student.isnull().any(axis=1)].isnull().any()
+ 
 
